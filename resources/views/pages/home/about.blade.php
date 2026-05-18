@@ -1,4 +1,6 @@
 @include('layouts.home.head')
+<title>About</title>
+
 <body class="animsition">
 	
 	@include('layouts.home.header')

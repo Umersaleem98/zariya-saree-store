@@ -144,6 +144,7 @@
                 <div class="block2">
                     <div class="block2-pic hov-img0">
                         <img src="{{ asset('templates/images/products/a.png') }}" alt="Royal Banarasi Silk Saree">
+
                         <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
                             Quick View
                         </a>
@@ -170,6 +171,7 @@
                 <div class="block2">
                     <div class="block2-pic hov-img0">
                         <img src="{{ asset('templates/images/products/b.png') }}" alt="Pure Kanjeevaram Zari Saree">
+
                         <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
                             Quick View
                         </a>
@@ -196,6 +198,7 @@
                 <div class="block2">
                     <div class="block2-pic hov-img0">
                         <img src="{{ asset('templates/images/products/c.png') }}" alt="Designer Georgette Saree">
+
                         <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
                             Quick View
                         </a>
@@ -206,344 +209,6 @@
                                 Designer Georgette Saree
                             </a>
                             <span class="stext-105 cl3">₹4,299</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 4: Chiffon -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item chiffon">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/d.png') }}" alt="Elegant Chiffon Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Elegant Chiffon Saree
-                            </a>
-                            <span class="stext-105 cl3">₹3,899</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 5: Cotton -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item cotton">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/e.png') }}" alt="Handloom Cotton Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Handloom Cotton Saree
-                            </a>
-                            <span class="stext-105 cl3">₹2,499</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 6: Banarasi -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item banarasi">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/f.png') }}" alt="Bridal Banarasi Red Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Bridal Banarasi Red Saree
-                            </a>
-                            <span class="stext-105 cl3">₹18,999</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 7: Kanjeevaram -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item kanjeevaram">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/g.png') }}" alt="South Silk Kanjeevaram">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                South Silk Kanjeevaram
-                            </a>
-                            <span class="stext-105 cl3">₹22,499</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 8: Georgette -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item georgette">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/a.png') }}" alt="Floral Georgette Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Floral Georgette Saree
-                            </a>
-                            <span class="stext-105 cl3">₹3,799</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 9: Chiffon -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item chiffon">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/b.png') }}" alt="Plain Chiffon Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Plain Chiffon Saree
-                            </a>
-                            <span class="stext-105 cl3">₹2,999</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 10: Cotton -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item cotton">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/c.png') }}" alt="Bengali Cotton Tant">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Bengali Cotton Tant
-                            </a>
-                            <span class="stext-105 cl3">₹1,899</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 11: Banarasi -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item banarasi">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/d.png') }}" alt="Festive Banarasi Blue">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Festive Banarasi Blue
-                            </a>
-                            <span class="stext-105 cl3">₹14,299</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 12: Kanjeevaram -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item kanjeevaram">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/e.png') }}" alt="Temple Border Kanjeevaram">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Temple Border Kanjeevaram
-                            </a>
-                            <span class="stext-105 cl3">₹19,999</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 13: Georgette -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item georgette">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/f.png') }}" alt="Party Wear Georgette">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Party Wear Georgette
-                            </a>
-                            <span class="stext-105 cl3">₹5,499</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 14: Chiffon -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item chiffon">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/g.png') }}" alt="Printed Chiffon Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Printed Chiffon Saree
-                            </a>
-                            <span class="stext-105 cl3">₹3,299</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 15: Cotton -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item cotton">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/a.png') }}" alt="Organic Cotton Saree">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Organic Cotton Saree
-                            </a>
-                            <span class="stext-105 cl3">₹2,199</span>
-                        </div>
-                        <div class="block2-txt-child2 flex-r p-t-3">
-                            <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-                                <img class="icon-heart1 dis-block trans-04" src="templates/images/icons/icon-heart-01.png" alt="ICON">
-                                <img class="icon-heart2 dis-block trans-04 ab-t-l" src="templates/images/icons/icon-heart-02.png" alt="ICON">
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Product 16: Banarasi -->
-            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item banarasi">
-                <div class="block2">
-                    <div class="block2-pic hov-img0">
-                        <img src="{{ asset('templates/images/products/b.png') }}" alt="Golden Banarasi Brocade">
-                        <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                            Quick View
-                        </a>
-                    </div>
-                    <div class="block2-txt flex-w flex-t p-t-14">
-                        <div class="block2-txt-child1 flex-col-l ">
-                            <a href="product-detail.html" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                                Golden Banarasi Brocade
-                            </a>
-                            <span class="stext-105 cl3">₹24,999</span>
                         </div>
                         <div class="block2-txt-child2 flex-r p-t-3">
                             <a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
@@ -587,6 +252,7 @@
                                 <div class="item-slick3" data-thumb="{{ asset('templates/images/products/a.png') }}">
                                     <div class="wrap-pic-w pos-relative">
                                         <img src="{{ asset('templates/images/products/a.png') }}" alt="Royal Banarasi Silk Saree">
+
                                         <a class="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04" href="{{ asset('templates/images/products/a.png') }}">
                                             <i class="fa fa-expand"></i>
                                         </a>
@@ -596,6 +262,7 @@
                                 <div class="item-slick3" data-thumb="{{ asset('templates/images/products/b.png') }}">
                                     <div class="wrap-pic-w pos-relative">
                                         <img src="{{ asset('templates/images/products/b.png') }}" alt="Pure Kanjeevaram Zari Saree">
+
                                         <a class="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04" href="{{ asset('templates/images/products/b.png') }}">
                                             <i class="fa fa-expand"></i>
                                         </a>
@@ -605,6 +272,7 @@
                                 <div class="item-slick3" data-thumb="{{ asset('templates/images/products/c.png') }}">
                                     <div class="wrap-pic-w pos-relative">
                                         <img src="{{ asset('templates/images/products/c.png') }}" alt="Designer Georgette Saree">
+
                                         <a class="flex-c-m size-108 how-pos1 bor0 fs-16 cl10 bg0 hov-btn3 trans-04" href="{{ asset('templates/images/products/c.png') }}">
                                             <i class="fa fa-expand"></i>
                                         </a>

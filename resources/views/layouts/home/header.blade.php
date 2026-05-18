@@ -44,18 +44,18 @@
                         {{-- ADMIN PANEL --}}
                         @if(auth()->user()->role == 'admin')
 
-                            <a href="/admin/dashboard" class="flex-c-m trans-04 p-lr-25">
+                            <a href="{{ route('dashboard') }}" class="flex-c-m trans-04 p-lr-25">
                                 Admin Panel
                             </a>
 
                         @endif
 
                         {{-- LOGOUT --}}
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" style="display:inline;">
                             @csrf
 
                             <button type="submit"
-                                style="border:none;background:none; color:#fff;"
+                                style="border:none;background:none;color:#fff;"
                                 class="flex-c-m trans-04 p-lr-25 mt-2">
                                 Logout
                             </button>
@@ -63,13 +63,7 @@
 
                     @endauth
 
-                    <a href="#" class="flex-c-m trans-04 p-lr-25">
-                        EN
-                    </a>
-
-                    <a href="#" class="flex-c-m trans-04 p-lr-25">
-                        USD
-                    </a>
+                  
 
                 </div>
             </div>
@@ -82,8 +76,7 @@
 
                 <!-- Logo -->
                 <a href="{{ route('home') }}" class="logo">
-                    {{-- <img src="{{ asset('templates/images/icons/logo-01.png') }}" alt="IMG-LOGO"> --}}
-                    <h3>Our Logo </h3>
+                    <h3>Our Logo</h3>
                 </a>
 
                 <!-- Menu -->
@@ -130,12 +123,12 @@
                     <!-- CART -->
                     @auth
 
-                        <div class="icon-header-item cl2 hov-cl1 trans-04 p-l-22 p-r-11 icon-header-noti js-show-cart"
+                        <a href="{{ route('cart') }}"
+                            class="icon-header-item cl2 hov-cl1 trans-04 p-l-22 p-r-11 icon-header-noti"
                             data-notify="{{ $cartCount ?? 0 }}">
 
                             <i class="zmdi zmdi-shopping-cart"></i>
-
-                        </div>
+                        </a>
 
                     @else
 
@@ -189,8 +182,7 @@
         <!-- Logo -->
         <div class="logo-mobile">
             <a href="{{ route('home') }}">
-                {{-- <img src="{{ asset('templates/images/icons/logo-01.png') }}" alt="IMG-LOGO"> --}}
-                <h3>OurLogo </h3>
+                <h3>OurLogo</h3>
             </a>
         </div>
 
@@ -205,12 +197,13 @@
             <!-- CART -->
             @auth
 
-                <div class="icon-header-item cl2 hov-cl1 trans-04 p-r-11 p-l-10 icon-header-noti js-show-cart"
+                <a href="{{ route('cart') }}"
+                    class="icon-header-item cl2 hov-cl1 trans-04 p-r-11 p-l-10 icon-header-noti"
                     data-notify="{{ $cartCount ?? 0 }}">
 
                     <i class="zmdi zmdi-shopping-cart"></i>
 
-                </div>
+                </a>
 
             @else
 
@@ -300,7 +293,7 @@
 
                         @if(auth()->user()->role == 'admin')
 
-                            <a href="/admin/dashboard" class="flex-c-m p-lr-10 trans-04">
+                            <a href="{{ route('dashboard') }}" class="flex-c-m p-lr-10 trans-04">
                                 Admin Panel
                             </a>
 
@@ -311,11 +304,10 @@
 
                             <button type="submit"
                                 style="border:none;background:none;"
-                                class="flex-c-m p-lr-10 trans-04">
-
+                                class="flex-c-m p-lr-10 trans-04 mt-2">
                                 Logout
-
                             </button>
+
                         </form>
 
                     @endauth
@@ -333,29 +325,12 @@
         <!-- MOBILE MENU -->
         <ul class="main-menu-m">
 
-            <li>
-                <a href="{{ route('home') }}">Home</a>
-            </li>
-
-            <li>
-                <a href="{{ route('shop') }}">Shop</a>
-            </li>
-
-            <li>
-                <a href="{{ route('features') }}">Features</a>
-            </li>
-
-            <li>
-                <a href="{{ route('blogs') }}">Blog</a>
-            </li>
-
-            <li>
-                <a href="{{ route('about') }}">About</a>
-            </li>
-
-            <li>
-                <a href="{{ route('contact') }}">Contact</a>
-            </li>
+            <li><a href="{{ route('home') }}">Home</a></li>
+            <li><a href="{{ route('shop') }}">Shop</a></li>
+            <li><a href="{{ route('features') }}">Features</a></li>
+            <li><a href="{{ route('blogs') }}">Blog</a></li>
+            <li><a href="{{ route('about') }}">About</a></li>
+            <li><a href="{{ route('contact') }}">Contact</a></li>
 
         </ul>
 
