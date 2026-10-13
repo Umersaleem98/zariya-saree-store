@@ -2,6 +2,8 @@
 
 GitHub: [Umersaleem98/zariya-saree-store](https://github.com/Umersaleem98/zariya-saree-store). For free hosting with Netlify and cloud MySQL, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
+Published storefront: https://zariya-saree-store.netlify.app/ — currently in sample-catalog mode until the cloud MySQL database is configured. Registration, admin data and order placement require that database. Local XAMPP credentials do not connect to the hosted site.
+
 A black-and-gold ecommerce store for Pakistani shoppers, built with Next.js App Router, React and MySQL/MariaDB (XAMPP). Original AI-generated editorial images and sample products are included for design preview. Replace them with your actual products before selling.
 
 ## Run locally

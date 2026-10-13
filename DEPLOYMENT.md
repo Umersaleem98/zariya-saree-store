@@ -2,6 +2,8 @@
 
 Repository: https://github.com/Umersaleem98/zariya-saree-store
 
+Published URL: https://zariya-saree-store.netlify.app/ (Netlify project `zariya-saree-store`, production branch `main`). The storefront deployment is verified; hosted database setup is still required. `APP_URL` is already set to this HTTPS URL in Netlify.
+
 Netlify supports commercial projects on its Free plan and provides a free `name.netlify.app` address. Aiven offers a free MySQL service. These plans have resource/usage limits; a free subdomain is different from owning a registered `.com` domain.
 
 ## 1. Create your cloud MySQL database
