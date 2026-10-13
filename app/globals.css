@@ -2564,3 +2564,103 @@ td small {
     font-size: 20px;
   }
 }
+/* Refined luxury finish: restrained gold details and editorial imagery. */
+.hero {
+  isolation: isolate;
+}
+.hero-shade {
+  background:
+    linear-gradient(90deg, #0b0d0bf2 0%, #0b0d0bb0 34%, #0b0d0b10 70%),
+    linear-gradient(0deg, #080a0860, transparent 45%);
+}
+.hero:after {
+  content: "";
+  position: absolute;
+  inset: 22px;
+  border: 1px solid #c9aa702c;
+  pointer-events: none;
+  z-index: 2;
+}
+.hero-copy {
+  z-index: 3;
+}
+.hero-caption,
+.hero-count {
+  z-index: 3;
+}
+.hero h1 em {
+  background: linear-gradient(100deg, #ba965e, #ecd7a7 52%, #b59560);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.hero .gold-button {
+  box-shadow: 0 4px 35px #c9aa7024;
+}
+.category-card {
+  border-radius: 2px;
+}
+.category-card:before {
+  content: "";
+  position: absolute;
+  inset: 11px;
+  border: 1px solid #fff3;
+  z-index: 2;
+  pointer-events: none;
+  transition: border-color 0.4s;
+}
+.category-card:hover:before {
+  border-color: #e7c88c88;
+}
+.category-card > div {
+  z-index: 3;
+}
+.product-image {
+  border-radius: 2px;
+}
+.product-card .product-name {
+  transition: color 0.25s;
+}
+.product-card:hover .product-name {
+  color: #a18452;
+}
+.product-meta > span:first-child {
+  letter-spacing: 0.3px;
+}
+.editorial-image img {
+  transition: transform 1.4s ease;
+  object-position: center;
+}
+.editorial:hover .editorial-image img {
+  transform: scale(1.035);
+}
+.editorial-image > span {
+  font-size: 29px;
+}
+.editorial-copy .story-signature {
+  padding-top: 15px;
+  border-top: 1px solid #cfbd972e;
+  width: max-content;
+}
+@media (max-width: 760px) {
+  .hero:after {
+    inset: 12px;
+  }
+  .hero-shade {
+    background: linear-gradient(90deg, #10100dba, #10100d55 70%, #10100d20);
+  }
+  .hero-copy {
+    left: 25px;
+  }
+  .editorial-image {
+    height: 340px;
+  }
+  .category-card:before {
+    inset: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .editorial:hover .editorial-image img {
+    transform: none;
+  }
+}

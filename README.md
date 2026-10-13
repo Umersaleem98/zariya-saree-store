@@ -1,5 +1,7 @@
 # Zariya — Next.js saree boutique
 
+Save the store, admin, GitHub and hosting links from [LINKS.md](LINKS.md).
+
 GitHub: [Umersaleem98/zariya-saree-store](https://github.com/Umersaleem98/zariya-saree-store). For free hosting with Netlify and cloud MySQL, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 Published storefront: https://zariya-saree-store.netlify.app/ — currently in sample-catalog mode until the cloud MySQL database is configured. Registration, admin data and order placement require that database. Local XAMPP credentials do not connect to the hosted site.

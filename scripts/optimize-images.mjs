@@ -7,7 +7,15 @@ for (let i = 0; i < entries.length; i += 2) {
   const [name, path] = entries.slice(i, i + 2);
   if (!/^[a-z]+$/.test(name)) throw Error("Invalid asset name");
   await sharp(path)
-    .resize({ width: name === "hero" ? 1600 : 800, withoutEnlargement: true })
+    .resize({
+      width:
+        name === "hero" || name === "campaign"
+          ? 1600
+          : name === "craftsmanship"
+            ? 1200
+            : 800,
+      withoutEnlargement: true,
+    })
     .jpeg({ quality: 83, mozjpeg: true })
     .toFile(resolve("public/images", name + ".jpg"));
   console.log("Optimized " + name);

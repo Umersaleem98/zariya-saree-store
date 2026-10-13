@@ -391,7 +391,7 @@ export default function Store({ initialProducts }) {
         <main>
           <section className="hero">
             <img
-              src="/images/hero.jpg"
+              src="/images/campaign.jpg"
               alt="Golden Banarasi saree, draped with timeless elegance"
               fetchPriority="high"
             />
@@ -646,8 +646,8 @@ export default function Store({ initialProducts }) {
             <div className="editorial-image">
               <img
                 loading="lazy"
-                src="/images/rose.jpg"
-                alt="The beauty of woven rose silk"
+                src="/images/craftsmanship.jpg"
+                alt="Ruby Banarasi silk with intricate golden zari craftsmanship"
               />
               <span>Made to be remembered.</span>
             </div>
