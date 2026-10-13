@@ -10,6 +10,7 @@ These are the production addresses. GitHub updates deploy to the same website ad
 ## Code and hosting management
 
 - GitHub repository: https://github.com/Umersaleem98/zariya-saree-store
+- Saved website images: https://github.com/Umersaleem98/zariya-saree-store/tree/main/public/images
 - This saved link list: https://github.com/Umersaleem98/zariya-saree-store/blob/main/LINKS.md
 - Netlify project: https://app.netlify.com/projects/zariya-saree-store/overview
 - Deployment history: https://app.netlify.com/projects/zariya-saree-store/deploys
