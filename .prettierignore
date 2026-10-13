@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.npm-cache/
+public/
+.env*
+package-lock.json

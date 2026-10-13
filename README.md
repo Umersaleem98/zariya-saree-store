@@ -1,59 +1,82 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Zariya — Next.js saree boutique
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+GitHub: [Umersaleem98/zariya-saree-store](https://github.com/Umersaleem98/zariya-saree-store). For free hosting with Netlify and cloud MySQL, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-## About Laravel
+A black-and-gold ecommerce store for Pakistani shoppers, built with Next.js App Router, React and MySQL/MariaDB (XAMPP). Original AI-generated editorial images and sample products are included for design preview. Replace them with your actual products before selling.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Run locally
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. Install Node.js 22.8 or later and XAMPP. Start **MySQL** in XAMPP Control Panel. Apache is only needed for phpMyAdmin; Next.js runs its own server.
+2. Run `npm install` in this project.
+3. Copy `.env.example` to `.env.local`. Configure your database host, port, username and password. Default XAMPP credentials are commonly `root` with a blank password; use a dedicated database user for production.
+4. Set `ADMIN_EMAIL` and a unique `ADMIN_PASSWORD` of at least 12 characters. These are used only when seeding the administrator. Never commit `.env.local`.
+5. Run `npm run db:setup`. This creates `zariya_store`, the tables, six sample products, categories, brands, and the admin account. Existing records are preserved. Changing the environment password does not reset an existing account.
+6. Run `npm run dev` and open http://127.0.0.1:3000.
+7. Open http://127.0.0.1:3000/admin and sign in with the administrator credentials you configured.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+If MySQL is unavailable, the storefront displays the sample catalog. Checkout is explicitly disabled in sample mode, and database actions show a setup error. Sample mode does not pretend to persist orders.
 
-## Learning Laravel
+## Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Responsive editorial storefront with black, gold, ivory and rose colours, subtle motion and reduced-motion support.
+- Collection filters, search, brand filtering, price sorting, product details, stock-aware shopping bag and device-local wishlist.
+- Customer registration, sign in/out, order history and order tracking using order reference plus email. Customers must sign in before checkout; the shopping bag is preserved and registration/sign-in returns them to checkout.
+- Checkout with Pakistani delivery addresses and PKR pricing. Cash on delivery is enabled by default. Bank transfer is disabled by default and can be enabled in Admin → Payment settings.
+- Optional Google sign-in with authorization code flow, PKCE, state/nonce validation and verified Google ID tokens.
+- Authenticated admin dashboard with delivered revenue, order counts, active products and low-stock alerts.
+- Product create/edit/archive/restore, stock editing, categories and brands, registered customer list.
+- Product CSV import/export, downloadable CSV template and order CSV export.
+- Orders with customer/address/item details and controlled status transitions. Cancelling a pending or confirmed order restores its stock once.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Database and authentication
 
-## Laravel Sponsors
+`database/schema.sql` defines the schema. `scripts/setup-db.mjs` creates the database and seeds it using your environment settings; import the SQL through phpMyAdmin only if you want to create tables manually (you will still need to seed an admin).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Server-side SQL uses parameterized queries. Passwords are salted with scrypt. Sessions use random tokens, store only SHA-256 hashes in SQL, expire after seven days, and use HTTP-only SameSite cookies. Production cookies require HTTPS. Admin access is checked at every admin endpoint. Mutation requests enforce same origin. Sign-in attempts are throttled per email in SQL.
 
-### Premium Partners
+Checkout recalculates prices and shipping on the server and reserves stock inside an SQL transaction with row locks. Duplicate cart entries are consolidated and locked in product-ID order. Checkout never trusts client-provided prices. Order states progress Pending → Confirmed → Shipped → Delivered; pending or confirmed orders may be cancelled.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Payments and launch requirements
 
-## Contributing
+Admin → **Payment settings** controls which supported payment methods appear at checkout. The API rejects disabled methods even if a caller submits them directly. At least one supported option must stay enabled. Online card payments remain deactivated and hidden until a verified gateway is integrated; the admin panel shows their unavailable status.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**Live card payments are not integrated.** The store never collects card numbers. Connect an approved payment provider, add hosted checkout and verified payment webhooks before offering cards. Bank-transfer orders remain pending; add your business bank details and verify transfers before confirming/dispatching.
 
-## Code of Conduct
+Before a public launch, replace sample images/prices/stock, confirm shipping estimates, add your real business contact information, approve the returns/privacy policies, configure transactional email/SMS, add database backups, and deploy with HTTPS and a secured MySQL account. Tax/invoicing, coupons, refunds, courier APIs, password reset email, and payment gateway integrations are not included in this version.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+XAMPP MySQL is a local development database. A public deployment needs a reachable secured MySQL server and a Node.js host; the database on your personal computer is not automatically available to an online host.
 
-## Security Vulnerabilities
+## Enable Sign in with Google
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Email/password registration works immediately with Gmail or any valid email. For the separate **Continue with Google** option:
 
-## License
+1. Create a Web application OAuth client in Google Cloud Console and configure the consent screen.
+2. Add `http://127.0.0.1:3000/api/auth/google/callback` as an authorized redirect URI for local development. Use the exact matching HTTPS callback URL for a public deployment.
+3. Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `APP_URL=http://127.0.0.1:3000` to `.env.local`. Keep the client secret on the server.
+4. Restart the server (and rebuild if using `npm start`). The Google button becomes available when credentials are configured.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Successful Google registration creates a customer account and resumes checkout when requested. Administrators continue using email/password. Google sign-in cannot be verified end to end until real OAuth credentials are provided. See the [official Google web-server OAuth guide](https://developers.google.com/identity/protocols/oauth2/web-server).
+
+## Commands
+
+```sh
+npm run dev
+npm test
+npm run build
+npm start
+```
+
+## Images
+
+Optimized JPEGs are under `public/images`. The images are original generated concept assets, not photographs of real inventory. Admin products accept an HTTPS image URL or a file path such as `/images/my-product.jpg`; add your own files under `public/images`.
+
+## Key files
+
+- `app/page.jsx`, `components/Store.jsx`: storefront and shopping interactions.
+- `app/admin/page.jsx`: dashboard, inventory and orders.
+- `app/api/[...path]/route.js`: backend endpoints.
+- `lib/db.mjs`, `lib/auth.mjs`, `lib/security.mjs`: database and authentication.
+- `database/schema.sql`, `scripts/setup-db.mjs`: SQL schema and seed.
+- `tests/core.test.mjs`: security, CSV, delivery and cart validation checks.
+
+Next.js route handlers and cookies follow the [official App Router documentation](https://nextjs.org/docs/app/api-reference/file-conventions/route).
