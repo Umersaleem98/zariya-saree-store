@@ -327,8 +327,9 @@ export default function Store({ initialProducts }) {
             <IconButton label="Open menu" onClick={() => setMobile(!mobile)}>
               <Menu />
             </IconButton>
-            <a className="brand-logo header-logo" href="/" aria-label="Rang Mahal — home">
-              <img src="/images/rang-mahal-logo.webp" alt="Rang Mahal — Sarees & Couture" width="640" height="640" fetchPriority="high" />
+            <a className="brand-lockup header-brand" href="/" aria-label="Rang Mahal — home">
+              <img className="brand-emblem" src="/images/rang-mahal-emblem.webp" alt="" width="320" height="320" fetchPriority="high" />
+              <span className="brand-wordmark">RANG MAHAL<span className="brand-tagline">COLOURS OF TRADITION</span></span>
             </a>
             <div className="header-actions">
               <IconButton
@@ -705,8 +706,9 @@ export default function Store({ initialProducts }) {
         <footer>
           <div className="footer-main wrap">
             <div className="footer-brand">
-              <a className="brand-logo footer-logo" href="/" aria-label="Rang Mahal — home">
-                <img src="/images/rang-mahal-logo.webp" alt="Rang Mahal — Sarees & Couture" width="640" height="640" loading="lazy" decoding="async" />
+              <a className="brand-lockup footer-brand-lockup" href="/" aria-label="Rang Mahal — home">
+                <img className="brand-emblem" src="/images/rang-mahal-emblem.webp" alt="" width="320" height="320" loading="lazy" decoding="async" />
+                <span className="brand-wordmark">RANG MAHAL<span className="brand-tagline">COLOURS OF TRADITION</span></span>
               </a>
               <p>
                 Six yards of grace.

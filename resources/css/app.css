@@ -2699,17 +2699,6 @@ td small {
 /* Local Rang Mahal English header update. */
 .header-top{height:125px;}
 .rang-mahal-store .wordmark{font-size:36px;letter-spacing:5px;}
-.brand-logo { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.brand-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.rang-mahal-store .header-top { height: 184px; }
-.header-logo { width: 164px; height: 164px; }
-.footer-logo { width: 188px; height: 188px; }
-.brand-logo:focus-visible { outline: 2px solid #9e7839; outline-offset: 5px; border-radius: 50%; }
-@media (max-width: 760px) {
-  .rang-mahal-store .header-top { height: 134px; }
-  .header-logo { width: 118px; height: 118px; }
-  .footer-logo { width: 164px; height: 164px; }
-}
 .rang-mahal-store .wordmark span{font-size:9px;letter-spacing:2.6px;}
 .category-nav{height:59px;}
 .category-nav button{font-weight:600;}
@@ -2734,4 +2723,121 @@ td small {
   .hero .eyebrow { font-size: 10px; letter-spacing: 1px; }
   .hero p { font-size: 13px; max-width: 310px; }
   .hero-bottom { font-size: 18px; }
+}
+
+/* Compact emblem with the original English wordmark. */
+.brand-lockup { display: inline-flex; align-items: center; gap: 17px; max-width: 100%; }
+.brand-emblem { display: block; width: 94px; height: 94px; object-fit: contain; flex-shrink: 0; }
+.brand-wordmark { font-family: var(--serif); font-size: 34px; line-height: 1.15; letter-spacing: 4px; white-space: nowrap; }
+.brand-tagline { display: block; margin-top: 7px; font-family: var(--sans); font-size: 10px; letter-spacing: 2px; }
+.rang-mahal-store .header-top { height: 118px; justify-content: flex-start; }
+.brand-lockup:focus-visible { outline: 2px solid #9e7839; outline-offset: 5px; }
+.footer-brand-lockup { gap: 12px; }
+.footer-brand-lockup .brand-emblem { width: 76px; height: 76px; }
+.footer-brand-lockup .brand-wordmark { font-size: 26px; letter-spacing: 2px; }
+.footer-brand-lockup .brand-tagline { font-size: 8px; letter-spacing: 1.2px; }
+.footer-main { grid-template-columns: minmax(310px, 1.4fr) .65fr .75fr 1fr; gap: 28px; }
+@media (min-width: 761px) and (max-width: 1100px) {
+  .footer-main { grid-template-columns: 1.3fr 1fr; }
+}
+
+/* Readable phone typography, including shopping and account panels. */
+@media (max-width: 760px) {
+  .rang-mahal-store { font-size: 16px; }
+  .rang-mahal-store .header-top { height: 124px; padding: 10px 18px 42px; }
+  .header-brand { gap: 10px; }
+  .header-brand .brand-emblem { width: 66px; height: 66px; }
+  .header-brand .brand-wordmark { font-size: 26px; letter-spacing: 2px; }
+  .header-brand .brand-tagline { font-size: 9px; letter-spacing: 1.1px; margin-top: 5px; }
+  .rang-mahal-store .header-actions { top: auto; bottom: 8px; right: 18px; gap: 18px; }
+  .rang-mahal-store .header-top > .icon-button { top: auto; bottom: 8px; }
+  .rang-mahal-store .icon-button { min-width: 32px; min-height: 32px; }
+  .rang-mahal-store .announcement-message { font-size: 11px; letter-spacing: .8px; }
+  .rang-mahal-store .category-nav { min-height: 54px; }
+  .rang-mahal-store .category-nav button { font-size: 13px; }
+  .rang-mahal-store .nav-new { font-size: 10px; }
+  .rang-mahal-store .eyebrow,
+  .rang-mahal-store .hero .eyebrow,
+  .rang-mahal-store .section-intro .eyebrow,
+  .rang-mahal-store .closing .eyebrow { font-size: 11px; line-height: 1.6; letter-spacing: 1px; }
+  .rang-mahal-store .hero { height: auto; min-height: 660px; }
+  .rang-mahal-store .hero > img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .rang-mahal-store .hero-copy { position: relative; left: auto; top: auto; padding: 48px 24px 125px; }
+  .rang-mahal-store .hero h1 { font-size: clamp(58px, 15vw, 70px); }
+  .rang-mahal-store .hero p { font-size: 16px; line-height: 1.8; max-width: 340px; }
+  .rang-mahal-store .hero-bottom { font-size: 22px; }
+  .rang-mahal-store .hero-caption span:first-child,
+  .rang-mahal-store .hero-count { font-size: 11px; }
+  .rang-mahal-store .hero-caption span:last-child { font-size: 18px; }
+  .rang-mahal-store .gold-button,
+  .rang-mahal-store .hero .gold-button,
+  .rang-mahal-store .outline-button { font-size: 12px; line-height: 1.5; letter-spacing: 1px; min-height: 44px; }
+  .rang-mahal-store .trust-bar span { font-size: 11px; line-height: 1.6; letter-spacing: .3px; }
+  .rang-mahal-store .section-intro { align-items: flex-start; flex-wrap: wrap; }
+  .rang-mahal-store .section-intro h2 { font-size: 38px; }
+  .rang-mahal-store .text-link,
+  .rang-mahal-store .section-intro .text-link { font-size: 13px; }
+  .rang-mahal-store .category-card span { font-size: 12px; line-height: 1.5; }
+  .rang-mahal-store .category-card h3 { font-size: 25px; }
+  .rang-mahal-store .collection-tools { flex-wrap: wrap; }
+  .rang-mahal-store .tabs { width: 100%; }
+  .rang-mahal-store .tabs button { font-size: 13px; padding-top: 12px; padding-bottom: 12px; }
+  .rang-mahal-store .sort { padding-top: 0; margin-left: auto; }
+  .rang-mahal-store .sort select { width: 150px; font-size: 14px; min-height: 40px; }
+  .rang-mahal-store .badge { font-size: 10px; max-width: calc(100% - 50px); line-height: 1.4; }
+  .rang-mahal-store .quick-add { font-size: 11px; min-height: 44px; }
+  .rang-mahal-store .product-meta { font-size: 12px; color: #675f50; }
+  .rang-mahal-store .product-name { font-size: 25px; line-height: 1.2; margin: 7px 0; }
+  .rang-mahal-store .price { font-size: 14px; }
+  .rang-mahal-store .price del { font-size: 12px; display: inline-block; }
+  .rang-mahal-store .editorial-copy p,
+  .rang-mahal-store .service-section p,
+  .rang-mahal-store .footer-main p { font-size: 15px; line-height: 1.8; }
+  .rang-mahal-store .story-signature { font-size: 26px; }
+  .rang-mahal-store .service-section h3 { font-size: 28px; }
+  .rang-mahal-store .footer-main { grid-template-columns: 1fr 1fr; gap: 30px 18px; }
+  .footer-brand-lockup .brand-emblem { width: 66px; height: 66px; }
+  .footer-brand-lockup .brand-wordmark { font-size: 25px; }
+  .footer-brand-lockup .brand-tagline { font-size: 9px; }
+  .rang-mahal-store .footer-brand p { font-size: 22px; }
+  .rang-mahal-store .footer-main h4 { font-size: 13px; letter-spacing: 1px; }
+  .rang-mahal-store .footer-main > div > button { font-size: 14px; min-height: 38px; }
+  .rang-mahal-store .location,
+  .rang-mahal-store .admin-link,
+  .rang-mahal-store .footer-pay,
+  .rang-mahal-store .footer-bottom,
+  .rang-mahal-store .footer-bottom button { font-size: 12px; line-height: 1.7; }
+  .rang-mahal-store .footer-bottom { color: #6e6556; }
+  .rang-mahal-store .drawer input,
+  .rang-mahal-store .drawer select,
+  .rang-mahal-store .drawer textarea { font-size: 16px; }
+  .rang-mahal-store .drawer label { font-size: 14px; }
+  .rang-mahal-store .drawer small,
+  .rang-mahal-store .fine-print,
+  .rang-mahal-store .radio-label span { font-size: 12px; }
+  .rang-mahal-store .radio-label { font-size: 14px !important; }
+  .rang-mahal-store .muted,
+  .rang-mahal-store .notice,
+  .rang-mahal-store .error,
+  .rang-mahal-store .policy p,
+  .rang-mahal-store .success p,
+  .rang-mahal-store .empty p,
+  .rang-mahal-store .bag-progress,
+  .rang-mahal-store .totals,
+  .rang-mahal-store .bag-item b,
+  .rang-mahal-store .quantity,
+  .rang-mahal-store .account-order,
+  .rang-mahal-store .auth-tabs button,
+  .rang-mahal-store .product-detail > p { font-size: 14px; line-height: 1.7; }
+  .rang-mahal-store .bag-item p { font-size: 12px; }
+  .rang-mahal-store .product-detail > .price { font-size: 20px; }
+  .rang-mahal-store .grand-total { font-size: 28px; }
+}
+@media (max-width: 360px) {
+  .header-brand .brand-emblem { width: 58px; height: 58px; }
+  .header-brand .brand-wordmark { font-size: 23px; letter-spacing: 1.5px; }
+  .header-brand .brand-tagline { font-size: 8px; }
+  .footer-brand-lockup { gap: 8px; }
+  .footer-brand-lockup .brand-wordmark { font-size: 22px; }
+  .rang-mahal-store .product-name { font-size: 23px; }
 }
