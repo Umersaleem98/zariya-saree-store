@@ -6,7 +6,7 @@ use App\Support\StoreCatalog;
 use App\Support\BusinessSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use App\Support\OrderEmails;
 use Illuminate\Support\Facades\RateLimiter;
 
 class GuestOrderController extends Controller
@@ -63,16 +63,9 @@ class GuestOrderController extends Controller
                 DB::table('product_variants')->where('id', $item['stock_variant_id'])->decrement('stock', $item['quantity']);
             }
             foreach ($products as $p) StoreCatalog::syncStock($p->id);
+            OrderEmails::record($id, 'placed');
             return ['reference' => $reference, 'total' => $cents / 100 + $shipping, 'payment_method' => $v['payment_method'], 'shipping' => $shipping, 'new' => true, 'items' => collect($items)->map(fn ($i) => collect($i)->only(['name', 'variant', 'quantity', 'price', 'stitching_charge'])->all())->values()];
         }, 3);
-        if ($result['new'] && ! in_array(config('mail.default'), ['log', 'array'])) {
-            try {
-                $business = BusinessSettings::get();
-                $lines = collect($result['items'])->map(fn ($i) => $i['name'].' — '.$i['variant'].' × '.$i['quantity'].' — PKR '.number_format($i['price'] * $i['quantity'], 2))->implode("\n");
-                $receipt = $business['brand_name']."\n".$business['return_address']."\nOrder date: ".now()->toDateTimeString()."\nTracking ID: {$result['reference']}\n".$lines."\nDelivery: PKR {$result['shipping']}\nTotal: PKR {$result['total']}\nTrack: ".url('/track?reference='.$result['reference'])."\nPayment: ".$result['payment_method']."\n\nReturns and exchanges:\n".$business['return_policy']."\n".$business['refund_conditions']."\nPolicy: ".url('/?policy=delivery');
-                Mail::raw($receipt, fn ($m) => $m->to($v['email'])->subject($business['brand_name'].' order — '.$result['reference']));
-            } catch (\Throwable $e) { report($e); }
-        }
         unset($result['new']);
         return response()->json($result, 201);
     }

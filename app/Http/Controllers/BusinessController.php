@@ -16,6 +16,7 @@ class BusinessController extends Controller
         }
         $rules['order_prefix'] = ['sometimes', 'required', 'regex:/^[A-Z]{2,6}$/'];
         $rules['order_category_code'] = ['sometimes', 'required', 'regex:/^[A-Z]{2,6}$/'];
+        $rules['support_email'] = 'sometimes|nullable|email|max:190';
         $rules['brand_name'] = 'sometimes|required|string|max:100';
         $rules['tagline'] = 'sometimes|required|string|max:200';
         $v = $r->validate($rules);
@@ -48,6 +49,7 @@ class BusinessController extends Controller
             $fields = collect($v)->except('id')->all();
             $fields['paid_at'] = $paid > 0 ? ($o->paid_at ?? now()) : null;
             DB::table('orders')->where('id', $o->id)->update($fields);
+            if (collect($fields)->except('paid_at')->contains(fn ($value, $key) => (string) $value !== (string) ($o->$key ?? ''))) \App\Support\OrderEmails::record($o->id, 'details');
             return response()->json(['ok' => true]);
         });
     }

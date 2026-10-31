@@ -1,6 +1,6 @@
 {
   "resources/js/app.jsx": {
-    "file": "assets/app-Co51ikxi.js",
+    "file": "assets/app-Ci-xFRFu.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -12,7 +12,7 @@
     ]
   },
   "resources/js/components/Admin.jsx": {
-    "file": "assets/Admin-C-rorH6q.js",
+    "file": "assets/Admin-Cqr8tx1t.js",
     "name": "Admin",
     "src": "resources/js/components/Admin.jsx",
     "isDynamicEntry": true,

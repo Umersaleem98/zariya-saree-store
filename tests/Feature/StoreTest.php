@@ -178,13 +178,50 @@ class StoreTest extends TestCase
 
     public function test_confirmation_email_when_configured_and_card_stays_hidden(): void
     {
-        Mail::shouldReceive('raw')->once()->withArgs(fn ($body, $callback) => str_contains($body, 'Tracking ID: RM-') && is_callable($callback));
+        Mail::fake();
         config(['mail.default' => 'smtp']); [$id, $variant] = $this->product();
-        $this->postJson('/api/orders', $this->payload($id, $variant))->assertCreated();
+        $payload = $this->payload($id, $variant);
+        $response = $this->postJson('/api/orders', $payload)->assertCreated();
+        $this->postJson('/api/orders', $payload)->assertCreated();
+        $orderId = DB::table('orders')->where('reference', $response->json('reference'))->value('id');
+        $this->assertEquals(1, DB::table('order_email_outbox')->where('order_id', $orderId)->count());
+        $this->assertEquals(1, \App\Support\OrderEmails::deliver());
+        $this->assertEquals(0, \App\Support\OrderEmails::deliver());
+        Mail::assertSent(\App\Mail\OrderUpdate::class, function ($mail) use ($response) {
+            $html = $mail->render();
+            return $mail->hasTo('guest@example.test') && str_contains($html, $response->json('reference')) && str_contains($html, 'Track your order') && str_contains($html, 'QA Saree');
+        });
+        $this->actingAs($this->staff());
+        $this->putJson('/api/admin/orders', ['id' => $orderId, 'status' => 'Confirmed'])->assertOk();
+        $this->putJson('/api/admin/orders', ['id' => $orderId, 'status' => 'Confirmed'])->assertOk();
+        $this->assertEquals(2, DB::table('order_email_outbox')->where('order_id', $orderId)->count());
+        $this->assertEquals(1, \App\Support\OrderEmails::deliver());
+        Mail::assertSent(\App\Mail\OrderUpdate::class, 2);
         $this->assertDatabaseHas('orders', ['email' => 'guest@example.test', 'user_id' => null]);
         $this->getJson('/api/settings')->assertJsonPath('payments.card_enabled', false);
         $this->actingAs($this->staff());
         $this->putJson('/api/admin/settings', ['cod_enabled' => true, 'bank_enabled' => false, 'card_enabled' => true])->assertUnprocessable();
+    }
+
+    public function test_email_failures_retry_without_changing_order_or_stock(): void
+    {
+        config(['mail.default' => 'smtp']);
+        [$id, $variant] = $this->product();
+        $r = $this->postJson('/api/orders', $this->payload($id, $variant))->assertCreated();
+        $orderId = DB::table('orders')->where('reference', $r->json('reference'))->value('id');
+        Mail::shouldReceive('getDefaultDriver')->andReturn('smtp');
+        Mail::shouldReceive('to')->once()->andThrow(new \RuntimeException('Simulated SMTP outage'));
+        $this->assertEquals(0, \App\Support\OrderEmails::deliver());
+        $entry = DB::table('order_email_outbox')->where('order_id', $orderId)->first();
+        $this->assertNull($entry->sent_at);
+        $this->assertEquals(1, $entry->attempts);
+        $this->assertGreaterThan(now()->timestamp, strtotime($entry->available_at));
+        $this->assertEquals(2, DB::table('product_variants')->find($variant)->stock);
+        Mail::fake();
+        DB::table('order_email_outbox')->where('id', $entry->id)->update(['available_at' => now()]);
+        $this->assertEquals(1, \App\Support\OrderEmails::deliver());
+        Mail::assertSent(\App\Mail\OrderUpdate::class, 1);
+        $this->assertNotNull(DB::table('order_email_outbox')->find($entry->id)->sent_at);
     }
 
     public function test_disabled_staff_and_stale_sessions_are_rejected(): void

@@ -132,7 +132,7 @@ class StoreApiController extends Controller
             return DB::transaction(function () use ($v, $states) {
                 $o = DB::table('orders')->where('id', $v['id'])->lockForUpdate()->first();
                 if ($o->status === $v['status']) return response()->json(['ok' => true]);
-                if ($o->status === 'Delivered' && $v['status'] === 'Returned') { $history = json_decode($o->status_history ?? '[]', true); $history[] = ['status' => 'Returned', 'at' => now()->toIso8601String()]; DB::table('orders')->where('id', $o->id)->update(['status' => 'Returned', 'status_history' => json_encode($history)]); return response()->json(['ok' => true]); }
+                if ($o->status === 'Delivered' && $v['status'] === 'Returned') { $history = json_decode($o->status_history ?? '[]', true); $history[] = ['status' => 'Returned', 'at' => now()->toIso8601String()]; DB::table('orders')->where('id', $o->id)->update(['status' => 'Returned', 'status_history' => json_encode($history)]); \App\Support\OrderEmails::record($o->id, 'status'); return response()->json(['ok' => true]); }
                 abort_if(in_array($o->status, ['Delivered', 'Cancelled', 'Returned']), 409, 'This order is final.');
                 if ($v['status'] === 'Cancelled') {
                     abort_if(in_array($o->status, ['Shipped', 'Out for Delivery']), 409, 'Dispatched orders cannot be cancelled here.');
@@ -143,6 +143,7 @@ class StoreApiController extends Controller
                 } else abort_unless(array_search($v['status'], $states) === array_search($o->status, $states) + 1, 409, 'Move to the next delivery status in sequence.');
                 $history = json_decode($o->status_history ?? '[]', true); $history[] = ['status' => $v['status'], 'at' => now()->toIso8601String()];
                 DB::table('orders')->where('id', $o->id)->update(['status' => $v['status'], 'status_history' => json_encode($history)]);
+                \App\Support\OrderEmails::record($o->id, 'status');
                 return response()->json(['ok' => true]);
             }, 3);
         }

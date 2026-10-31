@@ -8,7 +8,7 @@ class BusinessSettings
     public static function defaults(): array
     {
         return [
-            'brand_name' => 'Rang Mahal', 'urdu_brand_name' => 'رنگ محل', 'tagline' => 'Rooted in Tradition, Worn with Love.',
+            'support_email' => '', 'brand_name' => 'Rang Mahal', 'urdu_brand_name' => 'رنگ محل', 'tagline' => 'Rooted in Tradition, Worn with Love.',
             'standard_delivery_charge' => 350, 'free_delivery_threshold' => 10000, 'default_stitching_charge' => 5000,
             'stitching_enabled' => true, 'order_prefix' => 'RM', 'order_category_code' => 'SR',
             'shipping_policy' => 'Delivery is available across Pakistan. Charges are calculated once at checkout. Dispatch and delivery estimates depend on your city and will be confirmed with your order.',

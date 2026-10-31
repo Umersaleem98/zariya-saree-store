@@ -511,6 +511,7 @@ export default function Store({ initialProducts }) {
             </div>
             <div>
               <h4>HERE TO HELP</h4>
+              {business?.support_email && <a href={`mailto:${business.support_email}`}>{business.support_email}</a>}
               <button
                 onClick={() => {
                   setTracked(null);
