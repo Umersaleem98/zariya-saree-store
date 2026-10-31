@@ -1,0 +1,5 @@
+# Deny access when this project is placed below a web root accidentally.
+# Configure Apache to serve the public/ directory instead.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
