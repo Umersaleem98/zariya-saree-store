@@ -1,0 +1,1133 @@
+"use client";
+import { useState, useEffect } from "react";
+import {
+  LayoutDashboard,
+  Package,
+  Tags,
+  ShoppingBag,
+  Users,
+  ArrowUpRight,
+  Search,
+  Plus,
+  Download,
+  Upload,
+  LogOut,
+  ArrowLeft,
+  X,
+  AlertTriangle,
+  TrendingUp,
+  ChevronRight,
+  Save,
+  Trash2,
+  Pencil,
+  Layers,
+  CreditCard,
+  ShieldCheck,
+} from "lucide-react";
+import { money } from "../lib/catalog.mjs";
+import { parseCSV, toCSV } from "../lib/csv.mjs";
+import { validateProduct } from "../lib/validation.mjs";
+const blank = {
+  name: "",
+  category: "",
+  brand: "",
+  price: "",
+  compare_price: 0,
+  stock: 0,
+  color: "",
+  fabric: "",
+  badge: "",
+  image: "/images/gold.jpg",
+  description: "",
+};
+async function api(path, method = "GET", body) {
+  const r = await fetch("/api/" + path, {
+    method,
+    ...(body
+      ? {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      : {}),
+  });
+  const d = await r.json();
+  if (!r.ok) throw Error(d.error);
+  return d;
+}
+function download(name, contents) {
+  const url = URL.createObjectURL(
+    new Blob([contents], { type: "text/csv;charset=utf-8;" }),
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+export default function Admin() {
+  const [user, setUser] = useState(null),
+    [loading, setLoading] = useState(true),
+    [data, setData] = useState(null),
+    [tab, setTab] = useState("Overview"),
+    [error, setError] = useState(""),
+    [message, setMessage] = useState(""),
+    [busy, setBusy] = useState(false),
+    [search, setSearch] = useState(""),
+    [editing, setEditing] = useState(null),
+    [taxonomy, setTaxonomy] = useState(""),
+    [importing, setImporting] = useState(false),
+    [csv, setCsv] = useState(""),
+    [detail, setDetail] = useState(null),
+    [lineItems, setLineItems] = useState([]);
+  const [paymentDraft, setPaymentDraft] = useState({
+    cod_enabled: true,
+    bank_enabled: false,
+    card_enabled: false,
+  });
+  async function refresh() {
+    const result = await api("admin/data");
+    setData(result);
+    if (result.payments) setPaymentDraft(result.payments);
+  }
+  useEffect(() => {
+    api("auth")
+      .then(async (d) => {
+        setUser(d.user);
+        if (d.user?.role === "admin") await refresh();
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+  async function action(fn, reload = true) {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await fn();
+      if (reload) await refresh();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function login(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const d = await api(
+        "auth/login",
+        "POST",
+        Object.fromEntries(new FormData(e.currentTarget)),
+      );
+      setUser(d.user);
+      if (d.user.role === "admin") await refresh();
+      else setError("This account does not have administrator access.");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (loading)
+    return <div className="admin-loading">Loading Zariya administration…</div>;
+  if (!user || user.role !== "admin")
+    return (
+      <div className="admin-login">
+        <a className="wordmark" href="/">
+          ZARIYA<span>STORE ADMINISTRATION</span>
+        </a>
+        <div className="login-card">
+          <div className="eyebrow">WELCOME BACK</div>
+          <h1>
+            Your boutique,
+            <br />
+            <em>at a glance.</em>
+          </h1>
+          <p className="muted">Sign in with your administrator account.</p>
+          {error && <div className="error">{error}</div>}
+          <form onSubmit={login}>
+            <label>
+              Email
+              <input
+                required
+                name="email"
+                type="email"
+                autoComplete="username"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                required
+                name="password"
+                type="password"
+                autoComplete="current-password"
+              />
+            </label>
+            <button className="gold-button" disabled={busy}>
+              {busy ? "SIGNING IN…" : "SIGN IN TO DASHBOARD"}{" "}
+              <ArrowUpRight size={17} />
+            </button>
+          </form>
+          <a href="/" className="text-link">
+            <ArrowLeft size={15} /> Back to storefront
+          </a>
+          <small>
+            First time? Start XAMPP MySQL and run the database setup described
+            in README.md.
+          </small>
+        </div>
+      </div>
+    );
+  const products = data?.products || [],
+    orders = data?.orders || [],
+    active = products.filter((p) => p.active),
+    low = active.filter((p) => p.stock <= 5),
+    revenue = Number(data?.stats?.revenue || 0),
+    pending = Number(data?.stats?.pending_orders || 0);
+  const nav = [
+    ["Overview", LayoutDashboard],
+    ["Products & stock", Package],
+    ["Orders", ShoppingBag],
+    ["Categories", Layers],
+    ["Brands", Tags],
+    ["Customers", Users],
+    ["Payment settings", CreditCard],
+  ];
+  const filtered = products.filter((p) =>
+    `${p.name} ${p.category} ${p.brand}`
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
+  async function inspect(o) {
+    setDetail(o);
+    setLineItems([]);
+    try {
+      setLineItems((await api("admin/order-items?id=" + o.id)).items);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+  return (
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <a className="wordmark" href="/">
+          ZARIYA<span>THE ADMIN SUITE</span>
+        </a>
+        <span className="sidebar-label">YOUR BOUTIQUE</span>
+        <nav>
+          {nav.map(([name, Icon]) => (
+            <button
+              key={name}
+              className={tab === name ? "active" : ""}
+              onClick={() => {
+                setTab(name);
+                setSearch("");
+                setError("");
+                setMessage("");
+              }}
+            >
+              <Icon size={19} />
+              {name}
+              {name === "Orders" && pending > 0 && <i>{pending}</i>}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <a href="/" target="_blank">
+            View storefront <ArrowUpRight size={16} />
+          </a>
+          <button
+            onClick={() =>
+              action(async () => {
+                await api("auth/logout", "POST", {});
+                setUser(null);
+                setData(null);
+              }, false)
+            }
+          >
+            <LogOut size={17} /> Sign out
+          </button>
+          <div className="admin-profile">
+            <span>Z</span>
+            <div>
+              {user.name}
+              <small>Administrator</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div className="admin-content">
+        <div className="admin-topbar">
+          <span>
+            Administration <ChevronRight size={13} /> {tab}
+          </span>
+          <span className="admin-user">
+            <span className="live-dot" /> MySQL connected
+          </span>
+        </div>
+        <main className="admin-main">
+          <div className="admin-heading">
+            <div>
+              <div className="eyebrow">ZARIYA ADMINISTRATION</div>
+              <h1>{tab === "Overview" ? "A beautiful business." : tab}</h1>
+              <p className="muted">
+                {tab === "Overview"
+                  ? "Here’s how your boutique is doing today."
+                  : tab === "Products & stock"
+                    ? "Curate your collection and keep every drape in stock."
+                    : tab === "Orders"
+                      ? "From a beautiful choice to a happy doorstep."
+                      : "Manage the details that make your store yours."}
+              </p>
+            </div>
+            {tab === "Products & stock" && (
+              <button
+                className="gold-button"
+                onClick={() =>
+                  setEditing({
+                    ...blank,
+                    category: data.categories[0]?.name || "",
+                    brand: data.brands[0]?.name || "",
+                  })
+                }
+              >
+                <Plus size={16} /> ADD PRODUCT
+              </button>
+            )}
+          </div>
+          {error && (
+            <div className="error" role="alert">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div className="notice" role="status">
+              {message}
+            </div>
+          )}
+          {!data && (
+            <div className="empty">
+              <p>Dashboard data could not load.</p>
+              <button onClick={() => action(refresh)} className="gold-button">
+                RETRY
+              </button>
+            </div>
+          )}
+          {data && tab === "Overview" && (
+            <>
+              <div className="stat-grid">
+                {[
+                  {
+                    name: "Delivered revenue",
+                    value: money(revenue),
+                    sub: "Completed orders",
+                    Icon: TrendingUp,
+                  },
+                  {
+                    name: "Total orders",
+                    value: Number(data.stats?.total_orders || 0),
+                    sub: `${pending} awaiting confirmation`,
+                    Icon: ShoppingBag,
+                  },
+                  {
+                    name: "Active products",
+                    value: active.length,
+                    sub: `${active.reduce((s, p) => s + p.stock, 0)} pieces in stock`,
+                    Icon: Package,
+                  },
+                  {
+                    name: "Low stock alerts",
+                    value: low.length,
+                    sub: "5 pieces or fewer",
+                    Icon: AlertTriangle,
+                  },
+                ].map((s) => (
+                  <div className="stat-card" key={s.name}>
+                    <span>
+                      {s.name}
+                      <s.Icon size={18} />
+                    </span>
+                    <strong>{s.value}</strong>
+                    <small>{s.sub}</small>
+                  </div>
+                ))}
+              </div>
+              <div className="overview-grid">
+                <section className="admin-card">
+                  <div className="card-heading">
+                    <h2>Recent orders</h2>
+                    <button
+                      className="text-link"
+                      onClick={() => setTab("Orders")}
+                    >
+                      View all <ArrowUpRight size={14} />
+                    </button>
+                  </div>
+                  <OrderTable orders={orders.slice(0, 6)} inspect={inspect} />
+                </section>
+                <section className="admin-card">
+                  <div className="card-heading">
+                    <h2>Stock watch</h2>
+                    <span className="count-pill">{low.length}</span>
+                  </div>
+                  {low.length ? (
+                    low.slice(0, 6).map((p) => (
+                      <button
+                        key={p.id}
+                        className="stock-row"
+                        onClick={() => setEditing(p)}
+                      >
+                        <img src={p.image} alt="" />
+                        <span>
+                          {p.name}
+                          <small>{p.category}</small>
+                        </span>
+                        <b className="low-stock">{p.stock} left</b>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="empty">
+                      <Package size={28} />
+                      <p>Your collection is well stocked.</p>
+                    </div>
+                  )}
+                </section>
+              </div>
+              <div className="admin-card quick-actions">
+                <div>
+                  <div className="eyebrow">
+                    MAKE ROOM FOR SOMETHING BEAUTIFUL
+                  </div>
+                  <h2>Your next bestseller starts here.</h2>
+                  <p className="muted">
+                    Add a new drape, curate a category, or check your orders.
+                  </p>
+                </div>
+                <button
+                  className="gold-button"
+                  onClick={() => {
+                    setTab("Products & stock");
+                    setEditing({
+                      ...blank,
+                      category: data.categories[0]?.name || "",
+                      brand: data.brands[0]?.name || "",
+                    });
+                  }}
+                >
+                  ADD A NEW SAREE <Plus size={16} />
+                </button>
+              </div>
+            </>
+          )}
+          {data && tab === "Products & stock" && (
+            <section className="admin-card">
+              <div className="table-tools">
+                <div className="admin-search">
+                  <Search size={17} />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search products, categories, brands…"
+                  />
+                </div>
+                <div>
+                  <button
+                    className="outline-button small"
+                    onClick={() => {
+                      setCsv("");
+                      setImporting(true);
+                    }}
+                  >
+                    <Upload size={15} /> Import CSV
+                  </button>
+                  <button
+                    className="outline-button small"
+                    onClick={() =>
+                      download(
+                        "zariya-products.csv",
+                        toCSV(products, Object.keys(blank)),
+                      )
+                    }
+                  >
+                    <Download size={15} /> Export
+                  </button>
+                </div>
+              </div>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>PRODUCT</th>
+                      <th>CATEGORY / BRAND</th>
+                      <th>PRICE</th>
+                      <th>STOCK</th>
+                      <th>STATUS</th>
+                      <th>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((p) => (
+                      <tr key={p.id}>
+                        <td>
+                          <div className="table-product">
+                            <img src={p.image} alt="" />
+                            <span>
+                              <b>{p.name}</b>
+                              <small>
+                                ZR-{String(p.id).padStart(4, "0")} · {p.color}
+                              </small>
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          {p.category}
+                          <small>{p.brand}</small>
+                        </td>
+                        <td>{money(p.price)}</td>
+                        <td>
+                          <span
+                            className={
+                              p.stock <= 5 ? "low-stock" : "good-stock"
+                            }
+                          >
+                            {p.stock} pieces
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={
+                              "status " + (p.active ? "Delivered" : "Cancelled")
+                            }
+                          >
+                            {p.active ? "Active" : "Archived"}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              aria-label={`Edit ${p.name}`}
+                              onClick={() => setEditing(p)}
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
+                              disabled={busy}
+                              aria-label={
+                                p.active ? "Archive product" : "Restore product"
+                              }
+                              onClick={() =>
+                                action(() =>
+                                  api("admin/products", "DELETE", { id: p.id }),
+                                )
+                              }
+                            >
+                              {p.active ? (
+                                <Trash2 size={16} />
+                              ) : (
+                                <Plus size={16} />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!filtered.length && (
+                  <div className="empty">No products match your search.</div>
+                )}
+              </div>
+              <div className="table-footer">
+                {filtered.length} products · Archived products are hidden from
+                the storefront.
+              </div>
+            </section>
+          )}
+          {data && tab === "Orders" && (
+            <section className="admin-card">
+              <div className="table-tools">
+                <h2>
+                  Recent orders{" "}
+                  <span className="count-pill">{orders.length}</span>
+                </h2>
+                <button
+                  className="outline-button small"
+                  onClick={() =>
+                    download(
+                      "zariya-orders.csv",
+                      toCSV(orders, [
+                        "reference",
+                        "name",
+                        "email",
+                        "phone",
+                        "address",
+                        "city",
+                        "payment_method",
+                        "total",
+                        "shipping",
+                        "status",
+                        "created_at",
+                      ]),
+                    )
+                  }
+                >
+                  <Download size={15} /> Export orders
+                </button>
+              </div>
+              <OrderTable orders={orders} inspect={inspect} />
+            </section>
+          )}
+          {data && ["Categories", "Brands"].includes(tab) && (
+            <section className="admin-card">
+              <form
+                className="taxonomy-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  action(async () => {
+                    await api("admin/" + tab.toLowerCase(), "POST", {
+                      name: taxonomy,
+                    });
+                    setTaxonomy("");
+                  });
+                }}
+              >
+                <input
+                  required
+                  maxLength={100}
+                  placeholder={`New ${tab === "Brands" ? "brand" : "category"} name`}
+                  value={taxonomy}
+                  onChange={(e) => setTaxonomy(e.target.value)}
+                />
+                <button disabled={busy} className="gold-button">
+                  <Plus size={16} /> ADD{" "}
+                  {tab === "Brands" ? "BRAND" : "CATEGORY"}
+                </button>
+              </form>
+              <div className="taxonomy-grid">
+                {data[tab.toLowerCase()].map((t) => (
+                  <div key={t.id}>
+                    <Tags size={22} />
+                    <h3>{t.name}</h3>
+                    <p>
+                      {
+                        products.filter(
+                          (p) =>
+                            p[tab === "Brands" ? "brand" : "category"] ===
+                            t.name,
+                        ).length
+                      }{" "}
+                      products
+                    </p>
+                    <button
+                      disabled={busy}
+                      aria-label={`Delete ${t.name}`}
+                      onClick={() =>
+                        action(() =>
+                          api("admin/" + tab.toLowerCase(), "DELETE", {
+                            id: t.id,
+                          }),
+                        )
+                      }
+                    >
+                      <Trash2 size={15} /> Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          {data && tab === "Payment settings" && (
+            <section className="admin-card payment-settings">
+              <div className="card-heading">
+                <h2>Choose how your customers pay</h2>
+                <ShieldCheck size={22} />
+              </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  action(async () => {
+                    await api("admin/settings", "PUT", {
+                      cod_enabled: paymentDraft.cod_enabled,
+                      bank_enabled: paymentDraft.bank_enabled,
+                      card_enabled: paymentDraft.card_enabled,
+                    });
+                    setMessage(
+                      "Payment settings saved. Checkout now uses your selected methods.",
+                    );
+                  });
+                }}
+              >
+                <p className="muted">
+                  Only enabled methods appear at checkout. Customers must sign
+                  in before placing an order.
+                </p>
+                <label className="payment-setting-row">
+                  <div>
+                    <strong>Cash on delivery</strong>
+                    <p>Customers pay when their saree arrives.</p>
+                  </div>
+                  <input
+                    className="toggle-switch"
+                    type="checkbox"
+                    checked={paymentDraft.cod_enabled}
+                    onChange={(e) =>
+                      setPaymentDraft({
+                        ...paymentDraft,
+                        cod_enabled: e.target.checked,
+                      })
+                    }
+                  />
+                </label>
+                <label className="payment-setting-row">
+                  <div>
+                    <strong>Bank transfer</strong>
+                    <p>
+                      Show bank transfer as an alternative. Verify payments
+                      before dispatch.
+                    </p>
+                  </div>
+                  <input
+                    className="toggle-switch"
+                    type="checkbox"
+                    checked={paymentDraft.bank_enabled}
+                    onChange={(e) =>
+                      setPaymentDraft({
+                        ...paymentDraft,
+                        bank_enabled: e.target.checked,
+                      })
+                    }
+                  />
+                </label>
+                <label className="payment-setting-row">
+                  <div>
+                    <strong>
+                      Online card payments{" "}
+                      <span className="status Cancelled">Disabled</span>
+                    </strong>
+                    <p>
+                      A verified payment gateway is required before this option
+                      can be activated.
+                    </p>
+                  </div>
+                  <input
+                    className="toggle-switch"
+                    type="checkbox"
+                    checked={false}
+                    disabled
+                    aria-label="Online card payments unavailable until gateway integration"
+                  />
+                </label>
+                <div className="notice">
+                  Card payments are currently deactivated and hidden from
+                  customers. Keep at least one supported payment option enabled.
+                </div>
+                <div className="payment-save">
+                  <button className="gold-button" disabled={busy}>
+                    <Save size={16} />
+                    {busy ? "SAVING…" : "SAVE PAYMENT SETTINGS"}
+                  </button>
+                </div>
+              </form>
+              <div className="google-admin-status">
+                <strong>Google sign-in</strong>
+                <span
+                  className={
+                    "status " + (data.google_enabled ? "Delivered" : "Pending")
+                  }
+                >
+                  {data.google_enabled ? "Configured" : "Setup required"}
+                </span>
+                <p className="muted">
+                  Email/password accounts work now. To enable Google sign-in,
+                  add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and APP_URL to
+                  .env, then clear the Laravel configuration cache.
+                </p>
+              </div>
+            </section>
+          )}
+          {data && tab === "Customers" && (
+            <section className="admin-card">
+              <div className="card-heading">
+                <h2>Registered customers</h2>
+                <span className="count-pill">{data.customers.length}</span>
+              </div>
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>NAME</th>
+                      <th>EMAIL</th>
+                      <th>JOINED</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.customers.map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.name}</td>
+                        <td>{c.email}</td>
+                        <td>
+                          {new Date(c.created_at).toLocaleDateString("en-PK", {
+                            timeZone: "Asia/Karachi",
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!data.customers.length && (
+                <div className="empty">
+                  Your customer list will grow as shoppers create accounts.
+                </div>
+              )}
+            </section>
+          )}
+        </main>
+      </div>
+      {editing && (
+        <div className="overlay">
+          <section
+            className="drawer wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Product editor"
+          >
+            <div className="drawer-head">
+              <h2>{editing.id ? "Edit your drape" : "Add a new drape"}</h2>
+              <button
+                onClick={() => setEditing(null)}
+                aria-label="Close editor"
+              >
+                <X />
+              </button>
+            </div>
+            {error && <div className="error">{error}</div>}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                action(async () => {
+                  await api(
+                    "admin/products",
+                    editing.id ? "PUT" : "POST",
+                    editing,
+                  );
+                  setEditing(null);
+                  setMessage("Product saved successfully.");
+                });
+              }}
+            >
+              {[
+                "name",
+                "price",
+                "compare_price",
+                "stock",
+                "color",
+                "fabric",
+                "badge",
+                "image",
+              ].map((k) => (
+                <label key={k}>
+                  {
+                    {
+                      name: "Product name",
+                      price: "Price (PKR)",
+                      compare_price: "Original price (optional)",
+                      stock: "Stock quantity",
+                      color: "Colour",
+                      fabric: "Fabric",
+                      badge: "Badge (optional)",
+                      image: "Image URL or /images/filename.jpg",
+                    }[k]
+                  }
+                  <input
+                    required={["name", "price", "stock", "image"].includes(k)}
+                    type={
+                      ["price", "compare_price", "stock"].includes(k)
+                        ? "number"
+                        : "text"
+                    }
+                    min={k === "price" ? 1 : 0}
+                    step={k === "stock" ? 1 : "any"}
+                    value={editing[k] ?? ""}
+                    onChange={(e) =>
+                      setEditing({
+                        ...editing,
+                        [k]: ["price", "compare_price", "stock"].includes(k)
+                          ? Number(e.target.value)
+                          : e.target.value,
+                      })
+                    }
+                  />
+                </label>
+              ))}
+              {["category", "brand"].map((k) => (
+                <label key={k}>
+                  {k === "category" ? "Category" : "Brand"}
+                  <select
+                    required
+                    value={editing[k]}
+                    onChange={(e) =>
+                      setEditing({ ...editing, [k]: e.target.value })
+                    }
+                  >
+                    <option value="">Choose {k}</option>
+                    {data[k === "category" ? "categories" : "brands"].map(
+                      (t) => (
+                        <option key={t.id}>{t.name}</option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              ))}
+              <label>
+                Description
+                <textarea
+                  value={editing.description || ""}
+                  onChange={(e) =>
+                    setEditing({ ...editing, description: e.target.value })
+                  }
+                />
+              </label>
+              <button disabled={busy} className="gold-button">
+                <Save size={16} /> {busy ? "SAVING…" : "SAVE PRODUCT"}
+              </button>
+            </form>
+          </section>
+        </div>
+      )}
+      {importing && (
+        <div className="overlay">
+          <section className="drawer wide">
+            <div className="drawer-head">
+              <h2>Import your collection</h2>
+              <button
+                onClick={() => setImporting(false)}
+                aria-label="Close import"
+              >
+                <X />
+              </button>
+            </div>
+            <p className="muted">
+              Import new products from a CSV file. Categories and brands must
+              already exist. Each import adds new products.
+            </p>
+            <button
+              className="text-link"
+              onClick={() =>
+                download(
+                  "product-template.csv",
+                  toCSV(
+                    [
+                      {
+                        ...blank,
+                        name: "Sample saree",
+                        category: data.categories[0]?.name,
+                        brand: data.brands[0]?.name,
+                        price: 12000,
+                        stock: 10,
+                      },
+                    ],
+                    Object.keys(blank),
+                  ),
+                )
+              }
+            >
+              Download CSV template <Download size={15} />
+            </button>
+            <label>
+              Choose CSV
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 1000000) {
+                      setError("Maximum file size is 1 MB.");
+                      return;
+                    }
+                    setCsv(await file.text());
+                  }
+                }}
+              />
+            </label>
+            <label>
+              Preview
+              <textarea
+                className="csv-preview"
+                value={csv}
+                onChange={(e) => setCsv(e.target.value)}
+              />
+            </label>
+            {error && <div className="error">{error}</div>}
+            <button
+              disabled={busy || !csv}
+              className="gold-button"
+              onClick={() =>
+                action(async () => {
+                  const rows = parseCSV(csv);
+                  if (rows.length > 200)
+                    throw Error("Import a maximum of 200 products at a time.");
+                  const valid = rows.map(validateProduct);
+                  for (const p of valid)
+                    if (
+                      !data.categories.some((c) => c.name === p.category) ||
+                      !data.brands.some((b) => b.name === p.brand)
+                    )
+                      throw Error(
+                        "Create all categories and brands before importing.",
+                      );
+                  let saved = 0;
+                  try {
+                    for (const p of valid) {
+                      await api("admin/products", "POST", p);
+                      saved++;
+                    }
+                  } catch (e) {
+                    setCsv(toCSV(rows.slice(saved), Object.keys(blank)));
+                    await refresh();
+                    throw Error(
+                      `${saved} imported. Remaining rows are shown so you can retry without duplicates. ${e.message}`,
+                    );
+                  }
+                  setImporting(false);
+                  setMessage(`${saved} products imported.`);
+                })
+              }
+            >
+              <Upload size={16} /> {busy ? "IMPORTING…" : "IMPORT PRODUCTS"}
+            </button>
+          </section>
+        </div>
+      )}
+      {detail && (
+        <div className="overlay">
+          <section className="drawer wide">
+            <div className="drawer-head">
+              <h2>{detail.reference}</h2>
+              <button onClick={() => setDetail(null)} aria-label="Close order">
+                <X />
+              </button>
+            </div>
+            {error && <div className="error">{error}</div>}
+            <span className={"status " + detail.status}>{detail.status}</span>
+            <h3>{detail.name}</h3>
+            <p>
+              {detail.email}
+              <br />
+              {detail.phone}
+              <br />
+              {detail.address}
+              <br />
+              {detail.city}, Pakistan
+            </p>
+            <p>
+              Payment:{" "}
+              {detail.payment_method === "cod"
+                ? "Cash on delivery"
+                : "Bank transfer (verify separately)"}
+            </p>
+            <div className="totals">
+              {lineItems.map((i) => (
+                <span key={i.id}>
+                  {i.name} × {i.quantity}
+                  <b>{money(i.price * i.quantity)}</b>
+                </span>
+              ))}
+              <span>
+                Shipping <b>{money(detail.shipping)}</b>
+              </span>
+              <span className="grand-total">
+                Order total <b>{money(detail.total)}</b>
+              </span>
+            </div>
+            <label>
+              Update status
+              <select
+                value={detail.status}
+                disabled={busy}
+                onChange={(e) => {
+                  const status = e.target.value;
+                  action(async () => {
+                    await api("admin/orders", "PUT", { id: detail.id, status });
+                    setDetail({ ...detail, status });
+                  });
+                }}
+              >
+                {[
+                  "Pending",
+                  "Confirmed",
+                  "Shipped",
+                  "Delivered",
+                  "Cancelled",
+                ].map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <small>
+              Cancellation restores reserved stock. Delivered and cancelled
+              orders are final. Shipped orders can only move to delivered.
+            </small>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
+function OrderTable({ orders, inspect }) {
+  return (
+    <div className="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ORDER</th>
+            <th>CUSTOMER</th>
+            <th>TOTAL</th>
+            <th>STATUS</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((o) => (
+            <tr key={o.id}>
+              <td>
+                <b>{o.reference}</b>
+                <small>
+                  {new Date(o.created_at).toLocaleDateString("en-PK", {
+                    timeZone: "Asia/Karachi",
+                  })}
+                </small>
+              </td>
+              <td>
+                {o.name}
+                <small>{o.city}</small>
+              </td>
+              <td>{money(o.total)}</td>
+              <td>
+                <span className={"status " + o.status}>{o.status}</span>
+              </td>
+              <td>
+                <button
+                  aria-label={`View order ${o.reference}`}
+                  onClick={() => inspect(o)}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {!orders.length && (
+        <div className="empty">
+          <ShoppingBag size={30} />
+          <p>Your first beautiful order is on its way.</p>
+        </div>
+      )}
+    </div>
+  );
+}

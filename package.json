@@ -1,26 +1,19 @@
 {
-  "name": "zariya-saree-boutique",
-  "version": "1.0.0",
+  "name": "zariya-laravel-store",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
-    "start": "next start --hostname 127.0.0.1",
-    "db:setup": "node scripts/setup-db.mjs",
-    "test": "node --test --test-isolation=none tests/*.test.mjs"
+    "dev": "vite",
+    "build": "vite build"
   },
   "dependencies": {
-    "google-auth-library": "^11.3.0",
-    "lucide-react": "^0.468.0",
-    "mysql2": "^3.15.0",
-    "next": "^16.0.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
-  },
-  "engines": {
-    "node": ">=22.8"
+    "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
-    "prettier": "^3.9.10"
+    "vite": "^6.4.0",
+    "laravel-vite-plugin": "^1.2.0",
+    "@vitejs/plugin-react": "^4.7.0"
   }
 }

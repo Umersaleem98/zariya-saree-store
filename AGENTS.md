@@ -1,9 +1,7 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# Zariya Laravel project
 
-## This is NOT the Next.js you know
+Use Laravel 12 conventions with PHP 8.2 compatibility. Backend routes are in `routes/web.php`; APIs deliberately use the web middleware for session authentication and CSRF protection. Preserve CSRF headers in the React fetch wrapper. Frontend code lives in `resources/js`, styling in `resources/css`, and public imagery in `public/images`.
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+Run `npm run build` and `php artisan test` for relevant changes. Tests use transactions in a development MySQL database; never point tests at production. Do not commit `.env`, vendor dependencies, node_modules, private credentials, logs or runtime data. Serve only `public/`.
 
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+The XAMPP installation is `C:\xampp\htdocs\zariya-saree-store`, Apache address `http://localhost:8088`. This source checkout and XAMPP folder are separate copies. Preserve the XAMPP `.env` and runtime storage when syncing changes. Netlify cannot host Laravel; use `[skip netlify]` on pushes until deployment moves to PHP hosting.

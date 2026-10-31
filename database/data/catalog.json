@@ -1,0 +1,99 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Noor Banarasi Silk",
+      "category": "Silk Sarees",
+      "brand": "Zariya Signature",
+      "price": 18900,
+      "compare_price": 22500,
+      "stock": 16,
+      "color": "Ruby",
+      "fabric": "Banarasi silk",
+      "badge": "BESTSELLER",
+      "image": "/images/ruby.jpg",
+      "description": "A luminous ruby drape with intricate gold zari. Includes an unstitched blouse piece. A timeless companion for weddings and celebrations."
+    },
+    {
+      "id": 2,
+      "name": "Meher Midnight",
+      "category": "Party Wear",
+      "brand": "Zariya Signature",
+      "price": 14900,
+      "compare_price": 0,
+      "stock": 12,
+      "color": "Black",
+      "fabric": "Organza",
+      "badge": "NEW ARRIVAL",
+      "image": "/images/black.jpg",
+      "description": "Midnight black organza, delicately finished with a golden border. Includes an unstitched blouse piece."
+    },
+    {
+      "id": 3,
+      "name": "Gulabi Rose Silk",
+      "category": "Silk Sarees",
+      "brand": "Gul Heritage",
+      "price": 16900,
+      "compare_price": 19500,
+      "stock": 9,
+      "color": "Rose",
+      "fabric": "Pure silk",
+      "badge": "",
+      "image": "/images/rose.jpg",
+      "description": "Soft rose silk with a graceful gold weave. A romantic drape for special moments. Includes an unstitched blouse piece."
+    },
+    {
+      "id": 4,
+      "name": "Zehra Emerald",
+      "category": "Wedding Edit",
+      "brand": "Gul Heritage",
+      "price": 24500,
+      "compare_price": 0,
+      "stock": 7,
+      "color": "Emerald",
+      "fabric": "Banarasi silk",
+      "badge": "THE WEDDING EDIT",
+      "image": "/images/emerald.jpg",
+      "description": "Rich emerald silk with ornate heritage-inspired zari. Includes an unstitched blouse piece."
+    },
+    {
+      "id": 5,
+      "name": "Sunehri Champagne",
+      "category": "Festive Wear",
+      "brand": "Zariya Signature",
+      "price": 21900,
+      "compare_price": 0,
+      "stock": 14,
+      "color": "Gold",
+      "fabric": "Tissue silk",
+      "badge": "NEW ARRIVAL",
+      "image": "/images/gold.jpg",
+      "description": "A luminous champagne tissue drape with subtle gold details. Includes an unstitched blouse piece."
+    },
+    {
+      "id": 6,
+      "name": "Sitara Ivory",
+      "category": "Everyday Elegance",
+      "brand": "Gul Heritage",
+      "price": 9900,
+      "compare_price": 11900,
+      "stock": 22,
+      "color": "Ivory",
+      "fabric": "Cotton silk",
+      "badge": "",
+      "image": "/images/ivory.jpg",
+      "description": "Lightweight ivory cotton silk, beautifully finished for everyday occasions. Includes an unstitched blouse piece."
+    }
+  ],
+  "categories": [
+    "Silk Sarees",
+    "Party Wear",
+    "Wedding Edit",
+    "Festive Wear",
+    "Everyday Elegance"
+  ],
+  "brands": [
+    "Zariya Signature",
+    "Gul Heritage"
+  ]
+}

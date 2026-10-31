@@ -1,0 +1,40 @@
+name: Laravel checks
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testing
+          MYSQL_DATABASE: zariya_laravel
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -ptesting"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_DATABASE: zariya_laravel
+      DB_USERNAME: root
+      DB_PASSWORD: testing
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      ADMIN_EMAIL: admin@example.test
+      ADMIN_PASSWORD: integration-test-password-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env && php artisan key:generate
+      - run: npm ci && npm run build
+      - run: php artisan migrate --seed --force
+      - run: php artisan test

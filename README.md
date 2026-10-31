@@ -1,86 +1,64 @@
-# Zariya — Next.js saree boutique
+# Zariya — Laravel saree store
 
-Save the store, admin, GitHub and hosting links from [LINKS.md](LINKS.md).
+Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, original campaign images, product collections, wishlist, bag, customer accounts, checkout, inventory administration and CSV import/export are preserved from the previous Next.js store. PHP/Laravel now runs the backend; Node.js is needed only to build frontend assets.
 
-GitHub: [Umersaleem98/zariya-saree-store](https://github.com/Umersaleem98/zariya-saree-store). For free hosting with Netlify and cloud MySQL, see [DEPLOYMENT.md](DEPLOYMENT.md).
+## Your local installation
 
-Published storefront: https://zariya-saree-store.netlify.app/ — currently in sample-catalog mode until the cloud MySQL database is configured. Registration, admin data and order placement require that database. Local XAMPP credentials do not connect to the hosted site.
+- XAMPP project: `C:\xampp\htdocs\zariya-saree-store`
+- Storefront: http://localhost:8088/
+- Admin: http://localhost:8088/admin
+- MySQL database: `zariya_laravel`
+- Admin email: `admin@zariya.local`
 
-A black-and-gold ecommerce store for Pakistani shoppers, built with Next.js App Router, React and MySQL/MariaDB (XAMPP). Original AI-generated editorial images and sample products are included for design preview. Replace them with your actual products before selling.
+The admin password is privately saved in the local `.env` file as `ADMIN_PASSWORD`. It is never committed. The previous `zariya_store` database is preserved separately; old customers/orders are not automatically migrated to this new installation.
 
-## Run locally
+Start **Apache** and **MySQL** in XAMPP Control Panel. The included `deploy/xampp-zariya.conf` sets a local-only Apache virtual host on port 8088 pointing to `public/`, so environment files and application source are not web-accessible. It is included from XAMPP's `httpd.conf` on this machine.
 
-1. Install Node.js 22.8 or later and XAMPP. Start **MySQL** in XAMPP Control Panel. Apache is only needed for phpMyAdmin; Next.js runs its own server.
-2. Run `npm install` in this project.
-3. Copy `.env.example` to `.env.local`. Configure your database host, port, username and password. Default XAMPP credentials are commonly `root` with a blank password; use a dedicated database user for production.
-4. Set `ADMIN_EMAIL` and a unique `ADMIN_PASSWORD` of at least 12 characters. These are used only when seeding the administrator. Never commit `.env.local`.
-5. Run `npm run db:setup`. This creates `zariya_store`, the tables, six sample products, categories, brands, and the admin account. Existing records are preserved. Changing the environment password does not reset an existing account.
-6. Run `npm run dev` and open http://127.0.0.1:3000.
-7. Open http://127.0.0.1:3000/admin and sign in with the administrator credentials you configured.
+For changes: use this repository as the source checkout, build assets, then copy updated source/build files to the XAMPP folder. Keep its `.env`, storage and uploaded assets private. Do not overwrite the runtime environment or database on every update.
 
-If MySQL is unavailable, the storefront displays the sample catalog. Checkout is explicitly disabled in sample mode, and database actions show a setup error. Sample mode does not pretend to persist orders.
-
-## Features
-
-- Responsive editorial storefront with black, gold, ivory and rose colours, subtle motion and reduced-motion support.
-- Collection filters, search, brand filtering, price sorting, product details, stock-aware shopping bag and device-local wishlist.
-- Customer registration, sign in/out, order history and order tracking using order reference plus email. Customers must sign in before checkout; the shopping bag is preserved and registration/sign-in returns them to checkout.
-- Checkout with Pakistani delivery addresses and PKR pricing. Cash on delivery is enabled by default. Bank transfer is disabled by default and can be enabled in Admin → Payment settings.
-- Optional Google sign-in with authorization code flow, PKCE, state/nonce validation and verified Google ID tokens.
-- Authenticated admin dashboard with delivered revenue, order counts, active products and low-stock alerts.
-- Product create/edit/archive/restore, stock editing, categories and brands, registered customer list.
-- Product CSV import/export, downloadable CSV template and order CSV export.
-- Orders with customer/address/item details and controlled status transitions. Cancelling a pending or confirmed order restores its stock once.
-
-## Database and authentication
-
-`database/schema.sql` defines the schema. `scripts/setup-db.mjs` creates the database and seeds it using your environment settings; import the SQL through phpMyAdmin only if you want to create tables manually (you will still need to seed an admin).
-
-Server-side SQL uses parameterized queries. Passwords are salted with scrypt. Sessions use random tokens, store only SHA-256 hashes in SQL, expire after seven days, and use HTTP-only SameSite cookies. Production cookies require HTTPS. Admin access is checked at every admin endpoint. Mutation requests enforce same origin. Sign-in attempts are throttled per email in SQL.
-
-Checkout recalculates prices and shipping on the server and reserves stock inside an SQL transaction with row locks. Duplicate cart entries are consolidated and locked in product-ID order. Checkout never trusts client-provided prices. Order states progress Pending → Confirmed → Shipped → Delivered; pending or confirmed orders may be cancelled.
-
-## Payments and launch requirements
-
-Admin → **Payment settings** controls which supported payment methods appear at checkout. The API rejects disabled methods even if a caller submits them directly. At least one supported option must stay enabled. Online card payments remain deactivated and hidden until a verified gateway is integrated; the admin panel shows their unavailable status.
-
-**Live card payments are not integrated.** The store never collects card numbers. Connect an approved payment provider, add hosted checkout and verified payment webhooks before offering cards. Bank-transfer orders remain pending; add your business bank details and verify transfers before confirming/dispatching.
-
-Before a public launch, replace sample images/prices/stock, confirm shipping estimates, add your real business contact information, approve the returns/privacy policies, configure transactional email/SMS, add database backups, and deploy with HTTPS and a secured MySQL account. Tax/invoicing, coupons, refunds, courier APIs, password reset email, and payment gateway integrations are not included in this version.
-
-XAMPP MySQL is a local development database. A public deployment needs a reachable secured MySQL server and a Node.js host; the database on your personal computer is not automatically available to an online host.
-
-## Enable Sign in with Google
-
-Email/password registration works immediately with Gmail or any valid email. For the separate **Continue with Google** option:
-
-1. Create a Web application OAuth client in Google Cloud Console and configure the consent screen.
-2. Add `http://127.0.0.1:3000/api/auth/google/callback` as an authorized redirect URI for local development. Use the exact matching HTTPS callback URL for a public deployment.
-3. Add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `APP_URL=http://127.0.0.1:3000` to `.env.local`. Keep the client secret on the server.
-4. Restart the server (and rebuild if using `npm start`). The Google button becomes available when credentials are configured.
-
-Successful Google registration creates a customer account and resumes checkout when requested. Administrators continue using email/password. Google sign-in cannot be verified end to end until real OAuth credentials are provided. See the [official Google web-server OAuth guide](https://developers.google.com/identity/protocols/oauth2/web-server).
-
-## Commands
+## Fresh installation
 
 ```sh
-npm run dev
-npm test
-npm run build
-npm start
+composer install
 ```
 
-## Images
+Copy `.env.example` to `.env`, configure MySQL and set a unique `ADMIN_PASSWORD` of at least 12 characters. Create the chosen empty database in phpMyAdmin, then run:
 
-Optimized JPEGs are under `public/images`. The images are original generated concept assets, not photographs of real inventory. Admin products accept an HTTPS image URL or a file path such as `/images/my-product.jpg`; add your own files under `public/images`.
+```sh
+php artisan key:generate
+npm ci
+npm run build
+php artisan migrate --seed
+php artisan serve --host=127.0.0.1 --port=8000
+```
 
-## Key files
+For the built-in PHP server use `APP_URL=http://127.0.0.1:8000`. For Apache use the supplied virtual-host example and change paths/port as necessary. The web document root **must** be the `public` folder.
 
-- `app/page.jsx`, `components/Store.jsx`: storefront and shopping interactions.
-- `app/admin/page.jsx`: dashboard, inventory and orders.
-- `app/api/[...path]/route.js`: backend endpoints.
-- `lib/db.mjs`, `lib/auth.mjs`, `lib/security.mjs`: database and authentication.
-- `database/schema.sql`, `scripts/setup-db.mjs`: SQL schema and seed.
-- `tests/core.test.mjs`: security, CSV, delivery and cart validation checks.
+## Features and security
 
-Next.js route handlers and cookies follow the [official App Router documentation](https://nextjs.org/docs/app/api-reference/file-conventions/route).
+- Laravel session authentication, session regeneration and CSRF-protected mutations.
+- Customers must sign in or register before ordering; shopping bag persists locally.
+- Server-side validation, database role checks on every admin endpoint, login throttling.
+- MySQL transactions, row locks, server prices and shipping, duplicate-cart consolidation.
+- Cash on delivery enabled by default, optional bank transfer controlled by admin; card payments remain unavailable until a gateway is integrated.
+- Product CRUD/archive, inventory, categories, brands, customers, order management, product CSV import/export and order export.
+- Google OAuth via Laravel Socialite; supply your own credentials. Administrators use email/password.
+
+Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` in `.env`. Local callback: `http://localhost:8088/api/auth/google/callback`. Google credentials and consent configuration are still required; this flow cannot be verified with missing credentials.
+
+## Checks
+
+```sh
+php artisan test
+npm run build
+```
+
+Tests use transactions against the configured **development** MySQL database and roll back changes. Do not run them against a production database. GitHub Actions creates a disposable MySQL database for tests.
+
+## Online hosting
+
+Netlify cannot run this Laravel/PHP backend. Its existing website remains the last deployed Next.js preview. Commits for the Laravel replacement use `[skip netlify]` to avoid replacing that preview with an incompatible deployment. Use PHP 8.2+ hosting with MySQL, Composer dependencies, a `public/` document root, HTTPS, and writable `storage`/`bootstrap/cache` folders. See [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Before selling, replace sample inventory with actual product photos/prices and confirm your business contact, return policy and delivery terms. Live card payments, mail-based password reset, courier integration and transactional email are not included.
+
+Save all addresses from [LINKS.md](LINKS.md). The prior Next.js implementation remains recoverable in Git history.
