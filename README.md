@@ -1,4 +1,4 @@
-# Zariya — Laravel saree store
+# Rang Mahal — Laravel saree store
 
 Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, original campaign images, product collections, wishlist, bag, customer accounts, checkout, inventory administration and CSV import/export are preserved from the previous Next.js store. PHP/Laravel now runs the backend; Node.js is needed only to build frontend assets.
 
@@ -57,7 +57,9 @@ Tests use transactions against the configured **development** MySQL database and
 
 ## Online hosting
 
-Netlify cannot run this Laravel/PHP backend. Its existing website remains the last deployed Next.js preview. Commits for the Laravel replacement use `[skip netlify]` to avoid replacing that preview with an incompatible deployment. Use PHP 8.2+ hosting with MySQL, Composer dependencies, a `public/` document root, HTTPS, and writable `storage`/`bootstrap/cache` folders. See [DEPLOYMENT.md](DEPLOYMENT.md).
+Production runs on GoDaddy cPanel at **https://rangmahal.site/**; administration is at **https://rangmahal.site/admin**. It uses a dedicated production MySQL database, HTTPS, private application configuration, and a read-only GitHub deployment key. See [the production deployment guide](deploy/README.md) for cPanel update steps, backups, and recovery. Production admin credentials are saved privately outside GitHub; the local XAMPP credentials above apply only to the development installation.
+
+Netlify remains the last deployed Next.js preview and cannot run this Laravel/PHP backend. Laravel commits use `[skip netlify]`. For generic PHP hosting requirements see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 Before selling, replace sample inventory with actual product photos/prices and confirm your business contact, return policy and delivery terms. Live card payments, mail-based password reset, courier integration and transactional email are not included.
 
