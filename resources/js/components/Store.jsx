@@ -20,6 +20,7 @@ import {
   MapPin,
   SlidersHorizontal,
 } from "lucide-react";
+import {StorePolicy,TrackingDetails,initialBusiness} from "./StoreBusiness";
 import { money } from "../lib/catalog.mjs";
 import { defaultPayments } from "../lib/settings-client.mjs";
 const IconButton = ({ label, children, ...props }) => (
@@ -47,8 +48,9 @@ async function api(path, body) {
   return d;
 }
 export default function Store({ initialProducts }) {
-  const [products, setProducts] = useState(initialProducts),
+  const [products, setProducts] = useState([]),
     [demo, setDemo] = useState(false),
+    [catalogLoading, setCatalogLoading] = useState(true),
     [bag, setBag] = useState([]),
     [wish, setWish] = useState([]),
     [ready, setReady] = useState(false),
@@ -69,18 +71,23 @@ export default function Store({ initialProducts }) {
   const [trackingReference, setTrackingReference] = useState("");
   const [checkoutToken, setCheckoutToken] = useState(() => crypto.randomUUID());
   useEffect(() => { setGalleryIndex(0); setChosenVariant(selected?.variants?.find(v => v.enabled && v.stock > 0)?.id ?? null); }, [selected]);
+  const [business,setBusiness] = useState(initialBusiness);
   const [payments, setPayments] = useState(defaultPayments);
   useEffect(() => {
     try {
-      setBag(JSON.parse(localStorage.getItem("zariya-bag") || "[]"));
-      setWish(JSON.parse(localStorage.getItem("zariya-wish") || "[]"));
+      setBag(JSON.parse(localStorage.getItem("rang-mahal-bag") || localStorage.getItem("zariya-bag") || "[]"));
+      setWish(JSON.parse(localStorage.getItem("rang-mahal-wish") || localStorage.getItem("zariya-wish") || "[]"));
     } catch {}
     setReady(true);
     api("catalog").then((d) => {
       setProducts(d.products);
+      if(d.business)setBusiness(d.business);
+      const productId=location.pathname.match(/^\/products\/(\d+)$/)?.[1];if(productId)setSelected(d.products.find(p=>p.id===Number(productId))||null);
+      setSelected(previous=>previous?d.products.find(p=>p.id===previous.id)||null:null);
       setDemo(d.demo);
       if (d.payments) setPayments(d.payments);
-    }).catch(() => { setDemo(true); setToast("The collection could not load. Please refresh before ordering."); });
+    }).catch(() => { setDemo(true); setToast("The collection could not load. Please refresh before ordering."); }).finally(()=>setCatalogLoading(false));
+    const policy=new URLSearchParams(location.search).get("policy");if(["privacy","delivery"].includes(policy))setPanel(policy);
     const tracking = new URLSearchParams(location.search).get("tracking");
     if (tracking) { setPanel("track"); setTrackingReference(tracking); }
   }, []);
@@ -115,8 +122,8 @@ export default function Store({ initialProducts }) {
   }, [products, category, search, sort, brand]);
   useEffect(() => {
     if (ready) {
-      localStorage.setItem("zariya-bag", JSON.stringify(bag));
-      localStorage.setItem("zariya-wish", JSON.stringify(wish));
+      localStorage.setItem("rang-mahal-bag", JSON.stringify(bag));
+      localStorage.setItem("rang-mahal-wish", JSON.stringify(wish));
     }
   }, [bag, wish, ready]);
   useEffect(() => {
@@ -174,7 +181,7 @@ export default function Store({ initialProducts }) {
     return { ...i, variant_id: variant?.id, variant, product: base && variant ? { ...base, price: variant.price, stock: variant.enabled ? variant.stock : 0 } : null };
   }).filter(i => i.product),
     subtotal = items.reduce((a, i) => a + i.product.price * i.quantity, 0),
-    shipping = subtotal >= 15000 ? 0 : 250,
+    shipping = business && subtotal <= Number(business.free_delivery_threshold) ? Number(business.standard_delivery_charge) : 0,
     count = items.reduce((a, i) => a + i.quantity, 0);
   const selectedOption = selected?.variants?.find(v => v.id === chosenVariant);
   const selectedImages = selected?.images?.length ? selected.images : selected ? [selected.image] : [];
@@ -248,10 +255,10 @@ export default function Store({ initialProducts }) {
   }
   async function beginCheckout() {
     setBusy(true); setConfirmation(null); setCheckoutToken(crypto.randomUUID());
-    try { const settings = await api("settings"); setPayments(settings.payments); setPanel("checkout"); }
+    try { const settings = await api("catalog"); setPayments(settings.payments); setProducts(settings.products); setBusiness(settings.business); setPanel("checkout"); }
     catch (e) { setError(e.message); } finally { setBusy(false); }
   }
-  function account() { setTracked(null); setPanel("track"); }
+  function account() { location.assign("/track"); }
   function productCard(p) { return (<article className="product-card" key={p.id}>
                   <div className="product-image">
                     <button
@@ -295,18 +302,13 @@ export default function Store({ initialProducts }) {
                     </button>
                   </div>
                   <div className="product-meta">
-                    <span>{p.fabric} · {p.stock ? `${p.stock} left` : "Out of stock"}</span>
+                    <span>{p.fabric} · {p.stock ? `Only ${p.stock} Pieces Left` : "Out of stock"}</span>
                     <span
                       className={"swatch " + (p.color || "").toLowerCase()}
                       title={p.color}
                     />
                   </div>
-                  <button
-                    className="product-name"
-                    onClick={() => setSelected(p)}
-                  >
-                    {p.name}
-                  </button>
+                  <a className="product-name" href={"/products/"+p.id} onClick={e=>{e.preventDefault();setSelected(p);}}>{p.name}</a>
                   <div className="price">
                     {money(p.price)}{" "}
                     {p.compare_price > p.price && (
@@ -320,14 +322,14 @@ export default function Store({ initialProducts }) {
         className="store-surface"
         inert={panel || selected ? true : undefined}
       >
-        <div className="announcement" aria-label="Store announcement"><span className="announcement-message">COMPLIMENTARY DELIVERY ON ORDERS OF RS. 15,000 OR MORE <ArrowRight size={12}/></span></div><header>
+        <div className="announcement" aria-label="Store announcement"><span className="announcement-message">{business ? `FREE DELIVERY ON ORDERS ABOVE PKR ${Number(business.free_delivery_threshold).toLocaleString("en-PK")}` : "RANG MAHAL"} <ArrowRight size={12}/></span></div><header>
           <div className="header-top">
             <IconButton label="Open menu" onClick={() => setMobile(!mobile)}>
               <Menu />
             </IconButton>
             <a className="brand-lockup header-brand" href="/" aria-label="Rang Mahal — home">
-              <img className="brand-emblem" src="/images/rang-mahal-emblem.webp" alt="" width="320" height="320" fetchPriority="high" />
-              <span className="brand-wordmark">RANG MAHAL<span className="brand-tagline">COLOURS OF TRADITION</span></span>
+              <img className="brand-emblem" src="/images/rang-mahal-premium.webp" alt="" width="320" height="320" fetchPriority="high" />
+              <span className="brand-wordmark">{business?.brand_name}<span className="brand-tagline">{business?.tagline}</span></span>
             </a>
             <div className="header-actions">
               <IconButton
@@ -358,16 +360,7 @@ export default function Store({ initialProducts }) {
             </div>
           </div>
           </header><nav aria-label="Saree collections" className={mobile ? "category-nav open" : "category-nav"}>
-            <button onClick={() => browse()}>All Sarees</button>
-            <button onClick={() => browse("Silk Sarees")}>Silk Sarees</button>
-            <button onClick={() => browse("Party Wear")}>Party Wear</button>
-            <button onClick={() => browse("Wedding Edit")}>
-              The Wedding Edit <span className="nav-new">NEW</span>
-            </button>
-            <button onClick={() => browse("Festive Wear")}>Festive Wear</button>
-            <button onClick={() => browse("Everyday Elegance")}>
-              Everyday Elegance
-            </button>
+            {["All Sarees",...categories].map(c=><button key={c} onClick={()=>browse(c)}>{c}</button>)}
             <button
               onClick={() =>
                 document
@@ -377,6 +370,7 @@ export default function Store({ initialProducts }) {
             >
               Our Story
             </button>
+            {mobile && <a className="mobile-track-card" href="/track"><PackageCheck size={24}/><strong>Track Your Order</strong><span>Track your order and stay updated on its current status, shipping progress, and delivery information.</span></a>}
           </nav>
         <main>
           <section className="hero">
@@ -387,24 +381,7 @@ export default function Store({ initialProducts }) {
             />
             <div className="hero-shade" />
             <div className="hero-copy">
-              <div className="eyebrow">
-                <span /> RANG MAHAL — COLOURS OF TRADITION
-              </div>
-              <h1>
-                Rooted in
-                <br />
-                tradition.
-                <br />
-                Worn with <em>love.</em>
-              </h1>
-              <p>
-                Sarees for the celebrations that bring us together.
-                <br />
-                Discover colours and graceful drapes for your own story.
-              </p>
-              <button className="gold-button" onClick={() => browse()}>
-                EXPLORE THE COLLECTION <ArrowUpRight size={18} />
-              </button>
+              <h1>{business?.tagline}</h1>
             </div>
           </section>
           <section className="collection-menu wrap" aria-label="Browse saree collections">
@@ -478,7 +455,7 @@ export default function Store({ initialProducts }) {
             </div>
             {!visible.length && (
               <div className="empty">
-                No sarees found. Try another collection or search.
+                {catalogLoading ? "Loading the collection…" : demo ? "The collection is temporarily unavailable. Please refresh." : "No sarees found. Try another collection or search."}
               </div>
             )}
             <div className="center">
@@ -505,18 +482,11 @@ export default function Store({ initialProducts }) {
               <span>Made to be remembered.</span>
             </div>
             <div className="editorial-copy">
-              <div className="eyebrow">OUR STORY — A CONNECTION TO CULTURE</div>
-              <h2>
-                A love for culture.
-                <br />A style of <em>your own.</em>
-              </h2>
-              <p>
-                In Pakistan, colour is part of how we celebrate. It fills our mehndi evenings, brightens our Eid gatherings and lives on in the clothes we remember with love.
-              </p>
-              <p>
-                Rang Mahal begins with sarees and a love for Pakistani culture, traditions and the beauty of craft. Our vision reaches beyond clothing: to celebrate the colours, stories and creative expression that connect us. Choose a drape that feels like you, and make it part of your own story.
-              </p>
-              <div className="story-signature">With love, Rang Mahal.</div>
+              <div className="eyebrow">OUR STORY</div><h2>The Timeless Grace<br/>of <em>Rang Mahal</em></h2>
+              <p>Across the subcontinent, the saree has long been celebrated as a timeless expression of femininity, grace, and elegance. Its flowing silhouette, intricate artistry, and rich heritage have made it one of the most beautiful traditional garments for women.</p>
+              <p>At Rang Mahal, we believe that a saree is more than just a piece of clothing. It is a story woven through generations, a reflection of culture, and a celebration of timeless beauty.</p>
+              <p>Inspired by the colours, artistry, and heritage of Pakistan, Rang Mahal brings this centuries-old tradition into the modern world. Our collection celebrates the elegance of the saree while honouring the cultural richness that makes it truly special.</p>
+              <p>We are here to keep this beautiful tradition alive — bringing timeless elegance to every woman, one saree at a time.</p>
             </div>
           </section>
         </main>
@@ -524,20 +494,14 @@ export default function Store({ initialProducts }) {
           <div className="footer-main wrap">
             <div className="footer-brand">
               <a className="brand-lockup footer-brand-lockup" href="/" aria-label="Rang Mahal — home">
-                <img className="brand-emblem" src="/images/rang-mahal-emblem.webp" alt="" width="320" height="320" loading="lazy" decoding="async" />
-                <span className="brand-wordmark">RANG MAHAL<span className="brand-tagline">COLOURS OF TRADITION</span></span>
+                <img className="brand-emblem" src="/images/rang-mahal-premium.webp" alt="" width="320" height="320" loading="lazy" decoding="async" />
+                <span className="brand-wordmark">{business?.brand_name}<span className="brand-tagline">{business?.tagline}</span></span>
               </a>
-              <p>
-                Six yards of grace.
-                <br />A lifetime of stories.
-              </p>
-              <span className="location">
-                <MapPin size={15} /> Inspired by Pakistan. Chosen by you.
-              </span>
+              <p>{business?.tagline}</p>
             </div>
             <div>
               <h4>EXPLORE</h4>
-              {["All Sarees", "Silk Sarees", "Wedding Edit", "Party Wear"].map(
+              {["All Sarees", ...categories].slice(0,5).map(
                 (c) => (
                   <button key={c} onClick={() => browse(c)}>
                     {c}
@@ -550,7 +514,7 @@ export default function Store({ initialProducts }) {
               <button
                 onClick={() => {
                   setTracked(null);
-                  setPanel("track");
+                  account();
                 }}
               >
                 Track your order
@@ -559,25 +523,14 @@ export default function Store({ initialProducts }) {
                 Shipping & returns
               </button>
               <button onClick={() => setPanel("care")}>Saree care guide</button>
-            </div>
-            <div>
-              <h4>THE RANG MAHAL SPIRIT</h4>
-              <p>
-                A love for colour. A connection to tradition.
-                <br />A style that feels like you.
-              </p>
-              <span className="footer-pay">
-                {payments.cod_enabled ? "CASH ON DELIVERY" : ""}
-                {payments.cod_enabled && payments.bank_enabled ? " · " : ""}
-                {payments.bank_enabled ? "BANK TRANSFER" : ""}
-              </span>
+              <button onClick={()=>setPanel("payment")}>Payment information</button>
             </div>
           </div>
           <div className="footer-bottom wrap">
             <span>
               © {new Date().getFullYear()} Rang Mahal. All rights reserved.
             </span>
-            <span>PAKISTAN · PKR</span>
+
             <button onClick={() => setPanel("privacy")}>Privacy policy</button>
           </div>
         </footer>
@@ -610,8 +563,8 @@ export default function Store({ initialProducts }) {
               <div className="eyebrow">{selected.brand}</div>
               <h2>{selected.name}</h2>
               <div className="price">{money(selectedOption?.price ?? selected.price)} {selectedOption?.discount > 0 && <><del>{money(selectedOption.regular_price)}</del><span className="sale-label">{selectedOption.discount}% OFF</span></>}</div>
-              <fieldset className="variant-picker"><legend>Choose your option</legend>{["Unstitched","Stitched"].map(type=>{const v=selected.variants?.find(v=>v.type===type);return <label key={type} className={!v?.enabled || !v.stock ? "unavailable" : ""}><input type="radio" name="variant" value={v?.id || ""} checked={v?.id === chosenVariant} disabled={!v?.enabled || !v.stock} onChange={()=>setChosenVariant(v.id)} />{type}<span>{v?.enabled ? money(v.price) : "Unavailable"} · {v?.enabled ? v.stock+" left" : "Not offered"}</span></label>;})}</fieldset>
-              <p>{selected.description}</p>
+              <fieldset className="variant-picker"><legend>Choose your option</legend>{["Unstitched","Stitched"].map(type=>{const v=selected.variants?.find(v=>v.type===type);return <label key={type} className={!v?.enabled || !v.stock ? "unavailable" : ""}><input type="radio" name="variant" value={v?.id || ""} checked={v?.id === chosenVariant} disabled={!v?.enabled || !v.stock} onChange={()=>setChosenVariant(v.id)} />{type}<span>{v?.enabled ? money(v.price) : "Unavailable"} · {v?.enabled ? v.stock+" Pieces Left" : "Not offered"}</span></label>;})}</fieldset>
+              <p>{selected.description}</p><p className="product-shipping">{selected.shipping_info || `Delivery ${money(business?.standard_delivery_charge || 0)}. Free on orders above ${money(business?.free_delivery_threshold || 0)}.`}</p>
               <div className="detail-list">
                 <span>
                   Fabric <b>{selected.fabric}</b>
@@ -623,7 +576,7 @@ export default function Store({ initialProducts }) {
                   Length <b>Approx. 6.3 m, including blouse</b>
                 </span>
                 <span>
-                  Availability <b>{selectedOption?.stock ? `${selectedOption.stock} pieces remaining` : "Sold out"}</b>
+                  Availability <b>{selectedOption?.stock ? `Only ${selectedOption.stock} Pieces Left` : "Sold out"}</b>
                 </span>
               </div>
               <button
@@ -667,6 +620,7 @@ export default function Store({ initialProducts }) {
                   {
                     bag: "Your shopping bag",
                     checkout: "A beautiful choice.",
+                    payment: "Payment information",
                     search: "Find your perfect drape",
                     track: "Track your order",
                     delivery: "Shipping & returns",
@@ -717,9 +671,7 @@ export default function Store({ initialProducts }) {
                   <>
                     <div className="bag-progress">
                       <Truck size={17} />
-                      {subtotal >= 15000
-                        ? "Your order qualifies for complimentary delivery."
-                        : `You’re ${money(15000 - subtotal)} away from free delivery.`}
+                      {shipping === 0 ? "Your order qualifies for free delivery." : `Free delivery on orders above ${money(business?.free_delivery_threshold || 0)}.`}
                     </div>
                     {items.map((i) => (
                       <div className="bag-item" key={i.variant_id}>
@@ -775,7 +727,7 @@ export default function Store({ initialProducts }) {
                         <b>
                           {shipping
                             ? money(shipping)
-                            : "Complimentary"}
+                            : "Free delivery"}
                         </b>
                       </span>
                       <span className="grand-total">Total <b>{money(subtotal + shipping)}</b></span>
@@ -818,13 +770,15 @@ export default function Store({ initialProducts }) {
                   </p>
                   <strong className="tracking-id">{confirmation.reference}</strong>
                   <button type="button" className="outline-button" onClick={() => {setTrackingReference(confirmation.reference);setTracked(null);setPanel("track");}}>TRACK THIS ORDER</button>
+                  {confirmation.items?.map((i,n)=><p key={n}>{i.name} · {i.variant} × {i.quantity} — {money(i.price*i.quantity)}{Number(i.stitching_charge)>0 && ` (stitching included: ${money(i.stitching_charge)} per piece)`}</p>)}
                   <p>
-                    Total: {money(confirmation.total)}
+                    Delivery: {money(confirmation.shipping)}<br/>Total: {money(confirmation.total)}
                     <br />
                     {confirmation.payment_method === "cod"
                       ? "Pay when your order arrives."
                       : "Bank transfer is pending. The store must confirm payment instructions before dispatch."}
                   </p>
+                  <p>{business?.brand_name} · {business?.return_address}</p><a className="text-link" href="/?policy=delivery">Shipping, returns & refunds policy</a>
                   <button className="gold-button" onClick={() => browse()}>
                     CONTINUE SHOPPING
                   </button>
@@ -902,6 +856,7 @@ export default function Store({ initialProducts }) {
                       </label>
                     </div>
                     <label>Postal code<input name="postal_code" required maxLength={15} autoComplete="postal-code" placeholder="e.g. 54000" /></label>
+                    <details className="checkout-policy"><summary>Shipping, returns & refunds</summary><StorePolicy business={business} kind="delivery"/></details>
                     <h3>Payment method</h3>
                     {payments.cod_enabled && (
                       <label className="radio-label payment-choice">
@@ -967,52 +922,26 @@ export default function Store({ initialProducts }) {
             {panel === "track" && (
               <>
                 <p className="muted">
-                  Enter your tracking ID to see your order status. No login needed.
+                  Enter your order reference and checkout email to verify and track your order. No login needed.
                 </p>
                 <form onSubmit={(e) => submit(e, "track")}>
                   <label>
                     Order reference
                     <input name="reference" required placeholder="RM-…" value={trackingReference} onChange={e=>{setTrackingReference(e.target.value);setTracked(null);}} />
                   </label>
-                  {trackingReference && !trackingReference.toUpperCase().startsWith("RM-") && <label>Email for an older order<input type="email" name="email" required /></label>}
+                  <label>Order email<input type="email" name="email" required autoComplete="email"/></label>
                   <button disabled={busy} className="gold-button">
                     {busy ? "CHECKING…" : "TRACK ORDER"}{" "}
                     <ArrowRight size={17} />
                   </button>
                 </form>
                 {tracked && (
-                  <div className="tracking-result">
-                    <PackageCheck size={28} />
-                    <h3>{tracked.reference}</h3>
-                    <b>{tracked.status}</b>
-                    <p>{money(tracked.total)} · {tracked.city}</p>
-                    <ol className="tracking-steps">{["Pending","Confirmed","Processing","Packed","Shipped","Out for Delivery","Delivered"].map((step,i,steps)=><li key={step} className={tracked.status !== "Cancelled" && i <= steps.indexOf(tracked.status) ? "complete" : ""}>{step}</li>)}</ol>
-                    {tracked.items?.map((i,n)=><p key={n}>{i.name} · {i.variant || "Unstitched"} × {i.quantity}</p>)}
-                  </div>
+                  <TrackingDetails order={tracked}/>
                 )}
               </>
             )}
-            {panel === "delivery" && (
-              <div className="policy">
-                <h3>Delivery across Pakistan</h3>
-                <p>
-                  Delivery is Rs. 250. Orders of Rs. 15,000 or more qualify for
-                  complimentary delivery.
-                </p>
-                <h3>Delivery estimates</h3>
-                <p>
-                  Estimated delivery is 3–7 working days after confirmation,
-                  depending on your city. The store will confirm dispatch
-                  details.
-                </p>
-                <h3>Returns and exchanges</h3>
-                <p>
-                  Before launch, the store owner must publish an approved return
-                  policy and contact details here. Do not place live orders
-                  until this information is confirmed.
-                </p>
-              </div>
-            )}
+            {panel === "delivery" && <StorePolicy business={business} kind="delivery"/>}
+            {panel === "payment" && <div className="policy"><p>Only the options enabled by the store appear at checkout.</p>{payments.cod_enabled && <p>Cash on delivery: pay the confirmed order total when it arrives.</p>}{payments.bank_enabled && <p>Bank transfer: obtain verified payment instructions from the store before making a payment.</p>}<p>Your receipt shows the actual selected payment method. Payment status and courier details appear in verified order tracking.</p></div>}
             {panel === "care" && (
               <div className="policy">
                 <h3>A little care goes a long way.</h3>
@@ -1027,22 +956,7 @@ export default function Store({ initialProducts }) {
                 </p>
               </div>
             )}
-            {panel === "privacy" && (
-              <div className="policy">
-                <p>
-                  We collect your name, contact details and delivery address to
-                  process your order. Account passwords are stored as salted
-                  hashes; payment card details are never collected by this
-                  store.
-                </p>
-                <p>
-                  Your shopping bag and wishlist are stored on this device.
-                  Account sessions use an HTTP-only cookie. The store owner must
-                  add business contact details and the final privacy policy
-                  before launch.
-                </p>
-              </div>
-            )}
+            {panel === "privacy" && <StorePolicy business={business} kind="privacy"/>}
           </section>
         </div>
       )}

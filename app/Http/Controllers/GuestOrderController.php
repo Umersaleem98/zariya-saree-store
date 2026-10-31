@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\StoreCatalog;
+use App\Support\BusinessSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -37,31 +38,39 @@ class GuestOrderController extends Controller
             $old = DB::table('orders')->where('checkout_token', $v['checkout_token'])->first();
             if ($old) {
                 abort_unless(hash_equals($old->request_hash, $hash), 409, 'Checkout details changed. Please start a new checkout.');
-                return ['reference' => $old->reference, 'total' => (float) $old->total, 'payment_method' => $old->payment_method, 'new' => false];
+                return ['reference' => $old->reference, 'total' => (float) $old->total, 'payment_method' => $old->payment_method, 'shipping' => (float) $old->shipping, 'new' => false, 'items' => DB::table('order_items')->where('order_id', $old->id)->get(['name', 'variant', 'quantity', 'price', 'stitching_charge'])];
             }
-            $items = []; $cents = 0;
+            $items = []; $cents = 0; $reserved = []; $settings = BusinessSettings::get();
             foreach ($lines as $variantId => $line) {
                 $p = $products[$line['id']] ?? null;
-                $variant = DB::table('product_variants')->where('id', $variantId)->lockForUpdate()->first();
-                abort_unless($p && $p->active && $variant && $variant->product_id === $p->id && $variant->enabled, 409, 'This product option is unavailable.');
-                abort_if($variant->stock < $line['quantity'], 409, 'Not enough stock. Please update your shopping bag.');
-                $price = StoreCatalog::price($variant);
+                $rows = DB::table('product_variants')->where('product_id', $line['id'])->orderBy('id')->lockForUpdate()->get();
+                $variant = $p ? StoreCatalog::options($p, $rows, $settings)->firstWhere('id', $variantId) : null;
+                abort_unless($p && $p->active && $variant && $variant->enabled, 409, 'This product option is unavailable.');
+                $pool = $variant->stock_variant_id;
+                $reserved[$pool] = ($reserved[$pool] ?? 0) + $line['quantity'];
+                abort_if($variant->stock < $reserved[$pool], 409, 'Not enough stock. Please update your shopping bag.');
+                $price = $variant->price;
+                $knownCost = $p->cost_price !== null && $p->additional_cost !== null && ($variant->type !== 'Stitched' || $p->stitching_cost !== null);
+                $unitCost = $knownCost ? (float) $p->cost_price + (float) $p->additional_cost + ($variant->type === 'Stitched' ? (float) $p->stitching_cost : 0) : null;
                 $cents += (int) round($price * 100) * $line['quantity'];
-                $items[] = ['product_id' => $p->id, 'variant_id' => $variant->id, 'variant' => $variant->type, 'name' => $p->name, 'price' => $price, 'quantity' => $line['quantity']];
+                $items[] = ['product_id' => $p->id, 'variant_id' => $variant->id, 'stock_variant_id' => $pool, 'stitching_charge' => $variant->stitching_charge, 'unit_cost' => $unitCost, 'category_snapshot' => $p->category, 'brand_snapshot' => $p->brand, 'sku_snapshot' => $p->sku, 'variant' => $variant->type, 'name' => $p->name, 'price' => $price, 'quantity' => $line['quantity']];
             }
-            $shipping = $cents >= 1500000 ? 0 : 250;
-            $reference = 'RM-'.strtoupper(bin2hex(random_bytes(16)));
-            $id = DB::table('orders')->insertGetId([...collect($v)->except('items')->all(), 'user_id' => null, 'request_hash' => $hash, 'reference' => $reference, 'total' => $cents / 100 + $shipping, 'shipping' => $shipping]);
+            $shipping = BusinessSettings::shipping($cents / 100, $settings);
+            $reference = BusinessSettings::reference();
+            $id = DB::table('orders')->insertGetId([...collect($v)->except('items')->all(), 'user_id' => null, 'created_at' => now(), 'payment_status' => 'Pending', 'status_history' => json_encode([['status' => 'Pending', 'at' => now()->toIso8601String()]]), 'request_hash' => $hash, 'reference' => $reference, 'total' => $cents / 100 + $shipping, 'shipping' => $shipping]);
             foreach ($items as $item) {
                 DB::table('order_items')->insert([...$item, 'order_id' => $id]);
-                DB::table('product_variants')->where('id', $item['variant_id'])->decrement('stock', $item['quantity']);
+                DB::table('product_variants')->where('id', $item['stock_variant_id'])->decrement('stock', $item['quantity']);
             }
             foreach ($products as $p) StoreCatalog::syncStock($p->id);
-            return ['reference' => $reference, 'total' => $cents / 100 + $shipping, 'payment_method' => $v['payment_method'], 'new' => true];
+            return ['reference' => $reference, 'total' => $cents / 100 + $shipping, 'payment_method' => $v['payment_method'], 'shipping' => $shipping, 'new' => true, 'items' => collect($items)->map(fn ($i) => collect($i)->only(['name', 'variant', 'quantity', 'price', 'stitching_charge'])->all())->values()];
         }, 3);
         if ($result['new'] && ! in_array(config('mail.default'), ['log', 'array'])) {
             try {
-                Mail::raw("Thank you for choosing Rang Mahal.\nTracking ID: {$result['reference']}\nTotal: PKR {$result['total']}\nTrack your order at ".url('/?tracking='.$result['reference'])."\nPayment: ".$result['payment_method'], fn ($m) => $m->to($v['email'])->subject('Your Rang Mahal order — '.$result['reference']));
+                $business = BusinessSettings::get();
+                $lines = collect($result['items'])->map(fn ($i) => $i['name'].' — '.$i['variant'].' × '.$i['quantity'].' — PKR '.number_format($i['price'] * $i['quantity'], 2))->implode("\n");
+                $receipt = $business['brand_name']."\n".$business['return_address']."\nOrder date: ".now()->toDateTimeString()."\nTracking ID: {$result['reference']}\n".$lines."\nDelivery: PKR {$result['shipping']}\nTotal: PKR {$result['total']}\nTrack: ".url('/track?reference='.$result['reference'])."\nPayment: ".$result['payment_method']."\n\nReturns and exchanges:\n".$business['return_policy']."\n".$business['refund_conditions']."\nPolicy: ".url('/?policy=delivery');
+                Mail::raw($receipt, fn ($m) => $m->to($v['email'])->subject($business['brand_name'].' order — '.$result['reference']));
             } catch (\Throwable $e) { report($e); }
         }
         unset($result['new']);
@@ -75,14 +84,12 @@ class GuestOrderController extends Controller
         RateLimiter::hit($key, 60);
         $r->validate(['reference' => 'required|string|max:50']);
         $query = DB::table('orders')->where('reference', strtoupper(trim($r->reference)));
-        // Older references were issued with email verification; preserve that protection.
-        if (! str_starts_with(strtoupper(trim($r->reference)), 'RM-')) {
-            $r->validate(['email' => 'required|email']);
-            $query->where('email', strtolower(trim($r->email)));
-        }
-        $o = $query->first(['id', 'reference', 'status', 'total', 'shipping', 'city', 'created_at', 'payment_method']);
+        $r->validate(['email' => 'required|email']);
+        $query->where('email', strtolower(trim($r->email)));
+        $o = $query->first(['id', 'reference', 'status', 'total', 'shipping', 'city', 'created_at', 'payment_method', 'payment_status', 'courier_name', 'courier_tracking_number', 'courier_tracking_url', 'estimated_delivery_date', 'status_history']);
         abort_unless($o, 404, 'No order matches that tracking ID.');
-        $o->items = DB::table('order_items')->where('order_id', $o->id)->get(['name', 'variant', 'quantity', 'price']);
+        $o->items = DB::table('order_items')->where('order_id', $o->id)->get(['name', 'variant', 'quantity', 'price', 'stitching_charge']);
+        $o->status_history = json_decode($o->status_history ?? '[]', true);
         unset($o->id);
         return response()->json(['order' => $o]);
     }

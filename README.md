@@ -1,5 +1,7 @@
 # Rang Mahal — Laravel saree store
 
+The current business platform adds centralized shipping/stitching/return settings, verified sequential references, courier/payment records, customer insights and cost-aware analytics. See [business platform operations and limitations](deploy/BUSINESS-PLATFORM.md). Default delivery is PKR 350, free strictly above PKR 10,000; stitched price uses the unstitched selling price plus the configured charge (default PKR 5,000). Existing orders retain their original amounts and references.
+
 Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, original campaign images, product collections, wishlist, bag, guest checkout, inventory administration and CSV import/export are preserved from the previous Next.js store. PHP/Laravel now runs the backend; Node.js is needed only to build frontend assets.
 
 ## Your local installation

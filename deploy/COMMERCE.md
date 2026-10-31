@@ -1,5 +1,7 @@
 # Rang Mahal commerce operations
 
+The [business platform upgrade](BUSINESS-PLATFORM.md) supersedes older shipping, stitching and tracking rules below. All tracking now verifies checkout email. Stitched pricing uses the configured surcharge, and shared stock is counted once.
+
 Customers shop as guests. Add to Bag opens the drawer from the right. Products with multiple enabled variations first open the option selector. Checkout collects contact and delivery information, including postal code. COD never asks for card details. Save the RM tracking ID shown on confirmation; it also appears in the confirmation email when a real mail transport is configured. New RM IDs allow tracking without login; old ZR references retain email verification. Tracking exposes item snapshots, total, city and status, not email, phone or full address.
 
 ## Products, sales and stock

@@ -1,8 +1,8 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import Store from './components/Store';
-import Admin from './components/Admin';
-import {products} from './lib/catalog.mjs';
+const Admin = React.lazy(() => import('./components/Admin'));
+import {TrackingPage} from './components/StoreBusiness';
 import '../css/app.css';
 
 const originalFetch = window.fetch.bind(window);
@@ -26,4 +26,4 @@ window.fetch = async (input, init = {}) => {
   }
   return response;
 };
-createRoot(document.getElementById('app')).render(location.pathname === '/admin' ? <Admin/> : <Store initialProducts={products}/>);
+createRoot(document.getElementById('app')).render(<React.Suspense fallback={<div className="admin-loading" role="status">Loading Rang Mahal…</div>}>location.pathname === '/admin' ? <Admin/> : location.pathname === '/track' ? <TrackingPage/> : <Store/></React.Suspense>);

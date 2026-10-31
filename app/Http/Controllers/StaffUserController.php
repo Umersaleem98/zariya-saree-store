@@ -14,7 +14,7 @@ class StaffUserController extends Controller
     public function handle(Request $r)
     {
         abort_unless(StoreAccess::allows(Auth::user(), 'users.manage'), 403, 'User management permission required.');
-        if ($r->isMethod('GET')) return response()->json(['users' => DB::table('users')->orderBy('id')->get(['id', 'name', 'email', 'role', 'active', 'permissions', 'created_at']), 'roles' => StoreAccess::ROLES, 'permissions' => StoreAccess::PERMISSIONS]);
+        if ($r->isMethod('GET')) return response()->json(['users' => DB::table('users')->orderBy('id')->get(['id', 'name', 'email', 'role', 'active', 'permissions', 'created_at', 'last_login_at'])->map(function ($u) { $u->effective_permissions = StoreAccess::permissions($u); return $u; }), 'roles' => StoreAccess::ROLES, 'permissions' => StoreAccess::PERMISSIONS]);
         $r->merge(['email' => strtolower(trim((string) $r->input('email')))]);
         if ($r->isMethod('DELETE')) {
             $r->validate(['id' => 'required|integer|exists:users,id']);

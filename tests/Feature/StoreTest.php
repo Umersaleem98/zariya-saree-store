@@ -26,7 +26,7 @@ class StoreTest extends TestCase
 
     private function product(): array
     {
-        $id = DB::table('products')->insertGetId(['name' => 'QA Saree', 'category' => DB::table('categories')->value('name'), 'brand' => DB::table('brands')->value('name'), 'price' => 1000, 'stock' => 5, 'image' => '/images/gold.jpg', 'active' => 1]);
+        $id = DB::table('products')->insertGetId(['name' => 'QA Saree', 'category' => DB::table('categories')->value('name'), 'brand' => DB::table('brands')->value('name'), 'price' => 1000, 'stock' => 5, 'image' => '/images/gold.jpg', 'active' => 1, 'stitching_stock_mode' => 'separate']);
         $a = DB::table('product_variants')->insertGetId(['product_id' => $id, 'type' => 'Unstitched', 'regular_price' => 1500, 'sale_price' => 1000, 'sale_enabled' => 1, 'stock' => 3, 'enabled' => 1]);
         $b = DB::table('product_variants')->insertGetId(['product_id' => $id, 'type' => 'Stitched', 'regular_price' => 2000, 'stock' => 2, 'enabled' => 1]);
         return [$id, $a, $b];
@@ -41,8 +41,8 @@ class StoreTest extends TestCase
     {
         DB::table('store_settings')->where('id', 1)->update(['cod_enabled' => true]);
         [$id, $variant, $stitched] = $this->product(); $payload = $this->payload($id, $variant); $users = DB::table('users')->count();
-        $response = $this->postJson('/api/orders', $payload)->assertCreated()->assertJsonPath('total', 1250);
-        $reference = $response->json('reference'); $this->assertMatchesRegularExpression('/^RM-[A-F0-9]{32}$/', $reference);
+        $response = $this->postJson('/api/orders', $payload)->assertCreated()->assertJsonPath('total', 1350);
+        $reference = $response->json('reference'); $this->assertMatchesRegularExpression('/^RM-SR-[0-9]{8}-[0-9]{6,}$/', $reference);
         $this->assertDatabaseHas('orders', ['reference' => $reference, 'user_id' => null, 'postal_code' => '54000']);
         $this->assertDatabaseHas('order_items', ['variant_id' => $variant, 'variant' => 'Unstitched', 'price' => 1000]);
         $this->assertEquals(2, DB::table('product_variants')->find($variant)->stock);
@@ -51,7 +51,7 @@ class StoreTest extends TestCase
         $this->assertEquals(1, DB::table('orders')->where('checkout_token', $payload['checkout_token'])->count());
         $this->assertEquals(2, DB::table('product_variants')->find($variant)->stock);
         $this->postJson('/api/orders', [...$payload, 'city' => 'Karachi'])->assertStatus(409);
-        $this->postJson('/api/track', ['reference' => $reference])->assertOk()->assertJsonPath('order.status', 'Pending')->assertJsonPath('order.items.0.variant', 'Unstitched')->assertJsonMissingPath('order.email')->assertJsonMissingPath('order.address');
+        $this->postJson('/api/track', ['reference' => $reference, 'email' => 'guest@example.test'])->assertOk()->assertJsonPath('order.status', 'Pending')->assertJsonPath('order.items.0.variant', 'Unstitched')->assertJsonMissingPath('order.email')->assertJsonMissingPath('order.address');
         $this->getJson('/api/admin/data')->assertForbidden();
         $this->getJson('/api/auth')->assertJsonPath('user', null);
         $this->assertEquals($users, DB::table('users')->count());

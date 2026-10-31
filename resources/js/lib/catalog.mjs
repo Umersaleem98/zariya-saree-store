@@ -3,7 +3,7 @@ export const products = [
     id: 1,
     name: "Noor Banarasi Silk",
     category: "Silk Sarees",
-    brand: "Zariya Signature",
+    brand: "Rang Mahal Signature",
     price: 18900,
     compare_price: 22500,
     stock: 16,
@@ -18,7 +18,7 @@ export const products = [
     id: 2,
     name: "Meher Midnight",
     category: "Party Wear",
-    brand: "Zariya Signature",
+    brand: "Rang Mahal Signature",
     price: 14900,
     compare_price: 0,
     stock: 12,
@@ -63,7 +63,7 @@ export const products = [
     id: 5,
     name: "Sunehri Champagne",
     category: "Festive Wear",
-    brand: "Zariya Signature",
+    brand: "Rang Mahal Signature",
     price: 21900,
     compare_price: 0,
     stock: 14,
@@ -97,5 +97,5 @@ export const categories = [
   "Festive Wear",
   "Everyday Elegance",
 ];
-export const brands = ["Zariya Signature", "Gul Heritage"];
+export const brands = ["Rang Mahal Signature", "Gul Heritage"];
 export const money = (n) => `Rs. ${Number(n).toLocaleString("en-PK")}`;

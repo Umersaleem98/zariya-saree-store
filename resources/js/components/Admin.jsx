@@ -24,6 +24,7 @@ import {
   CreditCard,
   ShieldCheck,
 } from "lucide-react";
+import {BusinessDashboard,CustomerDashboard,BusinessSettingsForm,ShipmentEditor,ProductBusinessFields,ProductListing,OrderListing} from "./BusinessAdmin";
 import {ProductOptions, UserManagement, staffRoles, roleLabel} from './AdminCommerce';
 import { money } from "../lib/catalog.mjs";
 import { parseCSV, toCSV } from "../lib/csv.mjs";
@@ -80,6 +81,7 @@ export default function Admin() {
     [csv, setCsv] = useState(""),
     [detail, setDetail] = useState(null),
     [lineItems, setLineItems] = useState([]);
+  const [taxonomyEdit,setTaxonomyEdit] = useState(null);
   const [uploading, setUploading] = useState(false);
   const can = p => (data?.permissions || user?.permissions || []).includes(p);
   const [paymentDraft, setPaymentDraft] = useState({
@@ -195,10 +197,11 @@ export default function Admin() {
     ["Brands", Tags],
     ["Customers", Users],
     ["Payment settings", CreditCard],
+    ["Business settings", CreditCard],
     ["Users & permissions", Users],
-  ].filter(([name]) => name === "Overview" || can(({"Products & stock":"products.view","Orders":"orders.view","Categories":"taxonomy.manage","Brands":"taxonomy.manage","Customers":"customers.manage","Payment settings":"settings.manage","Users & permissions":"users.manage"})[name]));
+  ].filter(([name]) => name === "Overview" || can(({"Products & stock":"products.view","Orders":"orders.view","Categories":"taxonomy.manage","Brands":"taxonomy.manage","Customers":"customers.manage","Payment settings":"settings.manage","Business settings":"settings.manage","Users & permissions":"users.manage"})[name]));
   const filtered = products.filter((p) =>
-    `${p.name} ${p.category} ${p.brand}`
+    `${p.name} ${p.sku} ${p.category} ${p.brand} ${p.stock === 0 ? "out of stock" : p.variants?.some(v=>v.enabled && v.stock<=5) ? "low stock" : "in stock"}`
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
@@ -217,14 +220,14 @@ export default function Admin() {
         <a className="wordmark" href="/">
           RANG MAHAL<span>THE ADMIN SUITE</span>
         </a>
-        <span className="sidebar-label">YOUR BOUTIQUE</span>
+
         <nav>
           {nav.map(([name, Icon]) => (
             <button
               key={name}
               className={tab === name ? "active" : ""}
               onClick={() => {
-                setTab(name);
+                setTab(name); setTaxonomyEdit(null); setTaxonomy("");
                 setSearch("");
                 setError("");
                 setMessage("");
@@ -252,7 +255,7 @@ export default function Admin() {
             <LogOut size={17} /> Sign out
           </button>
           <div className="admin-profile">
-            <span>Z</span>
+            <span>RM</span>
             <div>
               {user.name}
               <small>{roleLabel(user.role)}</small>
@@ -317,14 +320,15 @@ export default function Admin() {
               </button>
             </div>
           )}
-          {data && tab === "Overview" && (
+          {data && tab === "Overview" && can("analytics.view") && <BusinessDashboard api={api} data={data}/>}
+          {data && tab === "Overview" && !can("analytics.view") && (
             <>
               <div className="stat-grid">
                 {[
                   {
-                    name: "Delivered revenue",
+                    name: "Recorded collections",
                     value: money(revenue),
-                    sub: "Completed orders",
+                    sub: "Verified payment records",
                     Icon: TrendingUp,
                   },
                   {
@@ -450,7 +454,7 @@ export default function Admin() {
                     className="outline-button small"
                     onClick={() =>
                       download(
-                        "zariya-products.csv",
+                        "rang-mahal-products.csv",
                         toCSV(products, Object.keys(blank)),
                       )
                     }
@@ -459,96 +463,7 @@ export default function Admin() {
                   </button>
                 </div>
               </div>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>PRODUCT</th>
-                      <th>CATEGORY / BRAND</th>
-                      <th>PRICE</th>
-                      <th>STOCK</th>
-                      <th>STATUS</th>
-                      <th>ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <div className="table-product">
-                            <img src={p.image} alt="" />
-                            <span>
-                              <b>{p.name}</b>
-                              <small>
-                                ZR-{String(p.id).padStart(4, "0")} · {p.color}
-                              </small>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          {p.category}
-                          <small>{p.brand}</small>
-                        </td>
-                        <td>{money(p.price)}</td>
-                        <td>
-                          <span
-                            className={
-                              p.stock <= 5 ? "low-stock" : "good-stock"
-                            }
-                          >
-                            {p.stock} pieces
-                            <small>{p.variants?.filter(v => v.enabled).map(v => `${v.type}: ${v.stock}`).join(' · ')}</small>
-                          </span>
-                        </td>
-                        <td>
-                          <span
-                            className={
-                              "status " + (p.active ? "Delivered" : "Cancelled")
-                            }
-                          >
-                            {p.active ? "Active" : "Archived"}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="row-actions">
-                            <button
-                              aria-label={`Edit ${p.name}`}
-                              disabled={!can("products.edit")}
-                              onClick={() => can("products.edit") && setEditing(p)}
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              disabled={busy || !can("products.delete")}
-                              aria-label={
-                                p.active ? "Archive product" : "Restore product"
-                              }
-                              onClick={() =>
-                                action(() =>
-                                  api("admin/products", "DELETE", { id: p.id }),
-                                )
-                              }
-                            >
-                              {p.active ? (
-                                <Trash2 size={16} />
-                              ) : (
-                                <Plus size={16} />
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {!filtered.length && (
-                  <div className="empty">No products match your search.</div>
-                )}
-              </div>
-              <div className="table-footer">
-                {filtered.length} products · Archived products are hidden from
-                the storefront.
-              </div>
+              <ProductListing products={filtered} can={can} onEdit={setEditing} onArchive={p=>action(()=>api("admin/products","DELETE",{id:p.id}))}/>
             </section>
           )}
           {data && tab === "Orders" && (
@@ -562,7 +477,7 @@ export default function Admin() {
                   className="outline-button small"
                   onClick={() =>
                     download(
-                      "zariya-orders.csv",
+                      "rang-mahal-orders.csv",
                       toCSV(orders, [
                         "reference",
                         "name",
@@ -582,7 +497,7 @@ export default function Admin() {
                   <Download size={15} /> Export orders
                 </button>
               </div>
-              <OrderTable orders={orders} inspect={inspect} />
+              <OrderListing api={api} data={data} inspect={inspect}/>
             </section>
           )}
           {data && ["Categories", "Brands"].includes(tab) && (
@@ -592,10 +507,10 @@ export default function Admin() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   action(async () => {
-                    await api("admin/" + tab.toLowerCase(), "POST", {
-                      name: taxonomy,
+                    await api("admin/" + tab.toLowerCase(), taxonomyEdit ? "PUT" : "POST", {
+                      ...(taxonomyEdit ? {id:taxonomyEdit.id} : {}), name: taxonomy,
                     });
-                    setTaxonomy("");
+                    setTaxonomy(""); setTaxonomyEdit(null);
                   });
                 }}
               >
@@ -607,7 +522,7 @@ export default function Admin() {
                   onChange={(e) => setTaxonomy(e.target.value)}
                 />
                 <button disabled={busy} className="gold-button">
-                  <Plus size={16} /> ADD{" "}
+                  <Plus size={16} /> {taxonomyEdit ? "SAVE" : "ADD"}{" "}
                   {tab === "Brands" ? "BRAND" : "CATEGORY"}
                 </button>
               </form>
@@ -626,6 +541,7 @@ export default function Admin() {
                       }{" "}
                       products
                     </p>
+                    <button type="button" disabled={busy} onClick={()=>{setTaxonomyEdit(t);setTaxonomy(t.name);}}>Edit</button>
                     <button
                       disabled={busy}
                       aria-label={`Delete ${t.name}`}
@@ -739,43 +655,8 @@ export default function Admin() {
             </section>
           )}
           {data && tab === "Users & permissions" && can("users.manage") && <UserManagement api={api} onChanged={refresh}/>}
-          {data && tab === "Customers" && (
-            <section className="admin-card">
-              <div className="card-heading">
-                <h2>Guest customers</h2>
-                <span className="count-pill">{data.customers.length}</span>
-              </div>
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>NAME</th>
-                      <th>EMAIL</th>
-                      <th>JOINED</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.customers.map((c) => (
-                      <tr key={c.email}>
-                        <td>{c.name}</td>
-                        <td>{c.email}</td>
-                        <td>
-                          {new Date(c.created_at).toLocaleDateString("en-PK", {
-                            timeZone: "Asia/Karachi",
-                          })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {!data.customers.length && (
-                <div className="empty">
-                  Customers appear here after placing an order.
-                </div>
-              )}
-            </section>
-          )}
+          {data && tab === "Customers" && <CustomerDashboard api={api} data={data}/>}
+          {data && tab === "Business settings" && <BusinessSettingsForm api={api}/>}
         </main>
       </div>
       {editing && (
@@ -800,7 +681,7 @@ export default function Admin() {
               onSubmit={(e) => {
                 e.preventDefault();
                 action(async () => {
-                  const variants=editing.variants || [{type:"Unstitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:Number(editing.stock),enabled:true},{type:"Stitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:0,enabled:false}];
+                  const variants=(editing.raw_variants || editing.variants) || [{type:"Unstitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:Number(editing.stock),enabled:true},{type:"Stitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:0,enabled:false}];
                   const enabled=variants.filter(v=>v.enabled);const cheapest=[...enabled].sort((a,b)=>(a.sale_enabled?a.sale_price:a.regular_price)-(b.sale_enabled?b.sale_price:b.regular_price))[0];
                   const payload={...editing,variants,price:cheapest?(cheapest.sale_enabled?cheapest.sale_price:cheapest.regular_price):Number(editing.price),stock:enabled.reduce((sum,v)=>sum+Number(v.stock),0),featured:!!editing.featured};
                   await api(
@@ -813,6 +694,7 @@ export default function Admin() {
                 });
               }}
             >
+              <h3>Product Information</h3>
               {[
                 "name",
                 "color",
@@ -855,6 +737,7 @@ export default function Admin() {
                   />
                 </label>
               ))}
+              <h3>Categories & Brand Information</h3>
               {["category", "brand"].map((k) => (
                 <label key={k}>
                   {k === "category" ? "Category" : "Brand"}
@@ -883,6 +766,7 @@ export default function Admin() {
                   }
                 />
               </label>
+              <ProductBusinessFields editing={editing} setEditing={setEditing} can={can}/>
               <ProductOptions editing={editing} setEditing={setEditing} can={can} uploading={uploading} setUploading={setUploading} api={api} setError={setError}/>
               <button disabled={busy || uploading} className="gold-button">
                 <Save size={16} /> {busy ? "SAVING…" : uploading ? "UPLOADING…" : "SAVE PRODUCT"}
@@ -1059,11 +943,13 @@ export default function Admin() {
                   "Out for Delivery",
                   "Delivered",
                   "Cancelled",
+                  "Returned",
                 ].map((s) => (
                   <option key={s}>{s}</option>
                 ))}
               </select>
             </label>
+            <ShipmentEditor detail={detail} api={api} onSaved={d=>{setDetail(d);refresh();}} can={can}/>
             <small>
               Cancellation restores reserved stock. Delivered and cancelled
               orders are final. Advance through delivery statuses in sequence.

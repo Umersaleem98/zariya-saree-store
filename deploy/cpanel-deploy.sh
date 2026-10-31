@@ -16,6 +16,8 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 tar -czf "$BACKUP_DIR/public-$STAMP.tar.gz" -C "$PUBLIC_DIR" .
 if [[ -f "$APP_DIR/artisan" ]]; then
   tar -czf "$BACKUP_DIR/app-$STAMP.tar.gz" --exclude=vendor --exclude=storage/logs --exclude=.env -C "$APP_DIR" .
+  # Avoid serving new PHP against the old schema during an additive migration.
+  (cd "$APP_DIR" && php artisan down --retry=30)
 fi
 rsync -a --exclude=.git --exclude=.github --exclude=.env --exclude='.env.*' --exclude=.local-tools --exclude=node_modules --exclude=vendor --exclude=storage --exclude=tests --exclude=previews --exclude=laravel-conversion "$SOURCE_DIR/" "$APP_DIR/"
 mkdir -p "$APP_DIR/storage/framework/"{cache/data,sessions,views} "$APP_DIR/storage/logs" "$APP_DIR/storage/app/public" "$APP_DIR/bootstrap/cache"
@@ -33,4 +35,5 @@ php artisan optimize:clear
 php artisan config:cache
 php artisan view:cache
 php artisan route:cache
+php artisan up
 printf 'Deployed commit %s at %s\n' "$(git -C "$SOURCE_DIR" rev-parse HEAD)" "$STAMP"
