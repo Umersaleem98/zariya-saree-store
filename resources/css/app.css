@@ -2699,6 +2699,17 @@ td small {
 /* Local Rang Mahal English header update. */
 .header-top{height:125px;}
 .rang-mahal-store .wordmark{font-size:36px;letter-spacing:5px;}
+.brand-logo { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.brand-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.rang-mahal-store .header-top { height: 184px; }
+.header-logo { width: 164px; height: 164px; }
+.footer-logo { width: 188px; height: 188px; }
+.brand-logo:focus-visible { outline: 2px solid #9e7839; outline-offset: 5px; border-radius: 50%; }
+@media (max-width: 760px) {
+  .rang-mahal-store .header-top { height: 134px; }
+  .header-logo { width: 118px; height: 118px; }
+  .footer-logo { width: 164px; height: 164px; }
+}
 .rang-mahal-store .wordmark span{font-size:9px;letter-spacing:2.6px;}
 .category-nav{height:59px;}
 .category-nav button{font-weight:600;}

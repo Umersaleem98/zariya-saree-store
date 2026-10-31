@@ -327,8 +327,8 @@ export default function Store({ initialProducts }) {
             <IconButton label="Open menu" onClick={() => setMobile(!mobile)}>
               <Menu />
             </IconButton>
-            <a className="wordmark" href="/">
-              RANG MAHAL<span>COLOURS OF TRADITION</span>
+            <a className="brand-logo header-logo" href="/" aria-label="Rang Mahal — home">
+              <img src="/images/rang-mahal-logo.webp" alt="Rang Mahal — Sarees & Couture" width="640" height="640" fetchPriority="high" />
             </a>
             <div className="header-actions">
               <IconButton
@@ -705,8 +705,8 @@ export default function Store({ initialProducts }) {
         <footer>
           <div className="footer-main wrap">
             <div className="footer-brand">
-              <a className="wordmark" href="/">
-                RANG MAHAL<span>COLOURS OF TRADITION</span>
+              <a className="brand-logo footer-logo" href="/" aria-label="Rang Mahal — home">
+                <img src="/images/rang-mahal-logo.webp" alt="Rang Mahal — Sarees & Couture" width="640" height="640" loading="lazy" decoding="async" />
               </a>
               <p>
                 Six yards of grace.
