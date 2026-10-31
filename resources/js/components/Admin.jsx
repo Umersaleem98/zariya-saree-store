@@ -24,6 +24,7 @@ import {
   CreditCard,
   ShieldCheck,
 } from "lucide-react";
+import {ProductOptions, UserManagement, staffRoles, roleLabel} from './AdminCommerce';
 import { money } from "../lib/catalog.mjs";
 import { parseCSV, toCSV } from "../lib/csv.mjs";
 import { validateProduct } from "../lib/validation.mjs";
@@ -43,7 +44,7 @@ const blank = {
 async function api(path, method = "GET", body) {
   const r = await fetch("/api/" + path, {
     method,
-    ...(body
+    ...(body instanceof FormData ? {body} : body
       ? {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -51,7 +52,7 @@ async function api(path, method = "GET", body) {
       : {}),
   });
   const d = await r.json();
-  if (!r.ok) throw Error(d.error);
+  if (!r.ok) throw Error(d.error || Object.values(d.errors || {}).flat()[0] || d.message || "Request failed.");
   return d;
 }
 function download(name, contents) {
@@ -79,6 +80,8 @@ export default function Admin() {
     [csv, setCsv] = useState(""),
     [detail, setDetail] = useState(null),
     [lineItems, setLineItems] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const can = p => (data?.permissions || user?.permissions || []).includes(p);
   const [paymentDraft, setPaymentDraft] = useState({
     cod_enabled: true,
     bank_enabled: false,
@@ -93,7 +96,7 @@ export default function Admin() {
     api("auth")
       .then(async (d) => {
         setUser(d.user);
-        if (d.user?.role === "admin") await refresh();
+        if (staffRoles.includes(d.user?.role)) await refresh();
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -122,7 +125,7 @@ export default function Admin() {
         Object.fromEntries(new FormData(e.currentTarget)),
       );
       setUser(d.user);
-      if (d.user.role === "admin") await refresh();
+      if (staffRoles.includes(d.user.role)) await refresh();
       else setError("This account does not have administrator access.");
     } catch (e) {
       setError(e.message);
@@ -132,7 +135,7 @@ export default function Admin() {
   }
   if (loading)
     return <div className="admin-loading">Loading Rang Mahal administration…</div>;
-  if (!user || user.role !== "admin")
+  if (!user || !staffRoles.includes(user.role))
     return (
       <div className="admin-login">
         <a className="wordmark" href="/">
@@ -174,17 +177,14 @@ export default function Admin() {
           <a href="/" className="text-link">
             <ArrowLeft size={15} /> Back to storefront
           </a>
-          <small>
-            First time? Start XAMPP MySQL and run the database setup described
-            in README.md.
-          </small>
+
         </div>
       </div>
     );
   const products = data?.products || [],
     orders = data?.orders || [],
     active = products.filter((p) => p.active),
-    low = active.filter((p) => p.stock <= 5),
+    low = active.filter((p) => p.variants?.some(v => v.enabled && v.stock <= 5)),
     revenue = Number(data?.stats?.revenue || 0),
     pending = Number(data?.stats?.pending_orders || 0);
   const nav = [
@@ -195,7 +195,8 @@ export default function Admin() {
     ["Brands", Tags],
     ["Customers", Users],
     ["Payment settings", CreditCard],
-  ];
+    ["Users & permissions", Users],
+  ].filter(([name]) => name === "Overview" || can(({"Products & stock":"products.view","Orders":"orders.view","Categories":"taxonomy.manage","Brands":"taxonomy.manage","Customers":"customers.manage","Payment settings":"settings.manage","Users & permissions":"users.manage"})[name]));
   const filtered = products.filter((p) =>
     `${p.name} ${p.category} ${p.brand}`
       .toLowerCase()
@@ -254,7 +255,7 @@ export default function Admin() {
             <span>Z</span>
             <div>
               {user.name}
-              <small>Administrator</small>
+              <small>{roleLabel(user.role)}</small>
             </div>
           </div>
         </div>
@@ -283,7 +284,7 @@ export default function Admin() {
                       : "Manage the details that make your store yours."}
               </p>
             </div>
-            {tab === "Products & stock" && (
+            {tab === "Products & stock" && can("products.create") && (
               <button
                 className="gold-button"
                 onClick={() =>
@@ -378,14 +379,14 @@ export default function Admin() {
                       <button
                         key={p.id}
                         className="stock-row"
-                        onClick={() => setEditing(p)}
+                        onClick={() => can("products.edit") && setEditing(p)}
                       >
                         <img src={p.image} alt="" />
                         <span>
                           {p.name}
                           <small>{p.category}</small>
                         </span>
-                        <b className="low-stock">{p.stock} left</b>
+                        <b className="low-stock">{p.variants?.filter(v => v.enabled && v.stock <= 5).map(v => `${v.type}: ${v.stock} left`).join(' · ')}</b>
                       </button>
                     ))
                   ) : (
@@ -408,6 +409,7 @@ export default function Admin() {
                 </div>
                 <button
                   className="gold-button"
+                  disabled={!can("products.create")}
                   onClick={() => {
                     setTab("Products & stock");
                     setEditing({
@@ -436,6 +438,7 @@ export default function Admin() {
                 <div>
                   <button
                     className="outline-button small"
+                    disabled={!can("products.create")}
                     onClick={() => {
                       setCsv("");
                       setImporting(true);
@@ -494,6 +497,7 @@ export default function Admin() {
                             }
                           >
                             {p.stock} pieces
+                            <small>{p.variants?.filter(v => v.enabled).map(v => `${v.type}: ${v.stock}`).join(' · ')}</small>
                           </span>
                         </td>
                         <td>
@@ -509,12 +513,13 @@ export default function Admin() {
                           <div className="row-actions">
                             <button
                               aria-label={`Edit ${p.name}`}
-                              onClick={() => setEditing(p)}
+                              disabled={!can("products.edit")}
+                              onClick={() => can("products.edit") && setEditing(p)}
                             >
                               <Pencil size={16} />
                             </button>
                             <button
-                              disabled={busy}
+                              disabled={busy || !can("products.delete")}
                               aria-label={
                                 p.active ? "Archive product" : "Restore product"
                               }
@@ -661,8 +666,7 @@ export default function Admin() {
                 }}
               >
                 <p className="muted">
-                  Only enabled methods appear at checkout. Customers must sign
-                  in before placing an order.
+                  Only enabled methods appear at checkout. Customers place orders as guests without signing in.
                 </p>
                 <label className="payment-setting-row">
                   <div>
@@ -731,27 +735,14 @@ export default function Admin() {
                   </button>
                 </div>
               </form>
-              <div className="google-admin-status">
-                <strong>Google sign-in</strong>
-                <span
-                  className={
-                    "status " + (data.google_enabled ? "Delivered" : "Pending")
-                  }
-                >
-                  {data.google_enabled ? "Configured" : "Setup required"}
-                </span>
-                <p className="muted">
-                  Email/password accounts work now. To enable Google sign-in,
-                  add GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and APP_URL to
-                  .env, then clear the Laravel configuration cache.
-                </p>
-              </div>
+              <p className="muted">Guest checkout is enabled. Customers do not need accounts.</p>
             </section>
           )}
+          {data && tab === "Users & permissions" && can("users.manage") && <UserManagement api={api} onChanged={refresh}/>}
           {data && tab === "Customers" && (
             <section className="admin-card">
               <div className="card-heading">
-                <h2>Registered customers</h2>
+                <h2>Guest customers</h2>
                 <span className="count-pill">{data.customers.length}</span>
               </div>
               <div className="table-scroll">
@@ -765,7 +756,7 @@ export default function Admin() {
                   </thead>
                   <tbody>
                     {data.customers.map((c) => (
-                      <tr key={c.id}>
+                      <tr key={c.email}>
                         <td>{c.name}</td>
                         <td>{c.email}</td>
                         <td>
@@ -780,7 +771,7 @@ export default function Admin() {
               </div>
               {!data.customers.length && (
                 <div className="empty">
-                  Your customer list will grow as shoppers create accounts.
+                  Customers appear here after placing an order.
                 </div>
               )}
             </section>
@@ -809,10 +800,13 @@ export default function Admin() {
               onSubmit={(e) => {
                 e.preventDefault();
                 action(async () => {
+                  const variants=editing.variants || [{type:"Unstitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:Number(editing.stock),enabled:true},{type:"Stitched",regular_price:Number(editing.price),sale_price:null,sale_enabled:false,stock:0,enabled:false}];
+                  const enabled=variants.filter(v=>v.enabled);const cheapest=[...enabled].sort((a,b)=>(a.sale_enabled?a.sale_price:a.regular_price)-(b.sale_enabled?b.sale_price:b.regular_price))[0];
+                  const payload={...editing,variants,price:cheapest?(cheapest.sale_enabled?cheapest.sale_price:cheapest.regular_price):Number(editing.price),stock:enabled.reduce((sum,v)=>sum+Number(v.stock),0),featured:!!editing.featured};
                   await api(
                     "admin/products",
                     editing.id ? "PUT" : "POST",
-                    editing,
+                    payload,
                   );
                   setEditing(null);
                   setMessage("Product saved successfully.");
@@ -821,9 +815,6 @@ export default function Admin() {
             >
               {[
                 "name",
-                "price",
-                "compare_price",
-                "stock",
                 "color",
                 "fabric",
                 "badge",
@@ -855,6 +846,7 @@ export default function Admin() {
                     onChange={(e) =>
                       setEditing({
                         ...editing,
+                        ...(k === "image" ? {images:[e.target.value,...(editing.images || []).slice(1)]} : {}),
                         [k]: ["price", "compare_price", "stock"].includes(k)
                           ? Number(e.target.value)
                           : e.target.value,
@@ -891,8 +883,9 @@ export default function Admin() {
                   }
                 />
               </label>
-              <button disabled={busy} className="gold-button">
-                <Save size={16} /> {busy ? "SAVING…" : "SAVE PRODUCT"}
+              <ProductOptions editing={editing} setEditing={setEditing} can={can} uploading={uploading} setUploading={setUploading} api={api} setError={setError}/>
+              <button disabled={busy || uploading} className="gold-button">
+                <Save size={16} /> {busy ? "SAVING…" : uploading ? "UPLOADING…" : "SAVE PRODUCT"}
               </button>
             </form>
           </section>
@@ -1022,7 +1015,7 @@ export default function Admin() {
               <br />
               {detail.address}
               <br />
-              {detail.city}, Pakistan
+              {detail.city} {detail.postal_code}, Pakistan
             </p>
             <p>
               Payment:{" "}
@@ -1033,7 +1026,7 @@ export default function Admin() {
             <div className="totals">
               {lineItems.map((i) => (
                 <span key={i.id}>
-                  {i.name} × {i.quantity}
+                  {i.name} · {i.variant || "Unstitched"} × {i.quantity}
                   <b>{money(i.price * i.quantity)}</b>
                 </span>
               ))}
@@ -1048,7 +1041,7 @@ export default function Admin() {
               Update status
               <select
                 value={detail.status}
-                disabled={busy}
+                disabled={busy || !can("orders.update")}
                 onChange={(e) => {
                   const status = e.target.value;
                   action(async () => {
@@ -1060,7 +1053,10 @@ export default function Admin() {
                 {[
                   "Pending",
                   "Confirmed",
+                  "Processing",
+                  "Packed",
                   "Shipped",
+                  "Out for Delivery",
                   "Delivered",
                   "Cancelled",
                 ].map((s) => (
@@ -1070,7 +1066,7 @@ export default function Admin() {
             </label>
             <small>
               Cancellation restores reserved stock. Delivered and cancelled
-              orders are final. Shipped orders can only move to delivered.
+              orders are final. Advance through delivery statuses in sequence.
             </small>
           </section>
         </div>

@@ -25,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof ValidationException) {
                 return response()->json(['error' => collect($e->errors())->flatten()->first(), 'errors' => $e->errors()], 422);
             }
+            if ($e instanceof \Illuminate\Http\Exceptions\PostTooLargeException) {
+                return response()->json(['error' => 'Upload is too large. Use up to four images, each at most 4 MB.'], 413);
+            }
             if ($e instanceof QueryException) {
                 report($e);
 

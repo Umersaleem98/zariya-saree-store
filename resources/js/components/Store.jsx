@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   Search,
   ShoppingBag,
-  UserRound,
   Heart,
   ArrowUpRight,
   ArrowRight,
@@ -41,7 +40,7 @@ async function api(path, body) {
   );
   const d = await r.json();
   if (!r.ok) {
-    const error = Error(d.error);
+    const error = Error(d.error || Object.values(d.errors || {}).flat()[0] || d.message || "Please try again.");
     error.status = r.status;
     throw error;
   }
@@ -58,19 +57,19 @@ export default function Store({ initialProducts }) {
     [category, setCategory] = useState("All Sarees"),
     [search, setSearch] = useState(""),
     [sort, setSort] = useState("featured"),
-    [user, setUser] = useState(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [toast, setToast] = useState(""),
     [confirmation, setConfirmation] = useState(null),
-    [register, setRegister] = useState(false),
     [tracked, setTracked] = useState(null),
-    [orders, setOrders] = useState([]),
     [mobile, setMobile] = useState(false),
     [brand, setBrand] = useState("All brands");
-  const [payments, setPayments] = useState(defaultPayments),
-    [googleEnabled, setGoogleEnabled] = useState(false),
-    [checkoutIntent, setCheckoutIntent] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [chosenVariant, setChosenVariant] = useState(null);
+  const [trackingReference, setTrackingReference] = useState("");
+  const [checkoutToken, setCheckoutToken] = useState(() => crypto.randomUUID());
+  useEffect(() => { setGalleryIndex(0); setChosenVariant(selected?.variants?.find(v => v.enabled && v.stock > 0)?.id ?? null); }, [selected]);
+  const [payments, setPayments] = useState(defaultPayments);
   useEffect(() => {
     try {
       setBag(JSON.parse(localStorage.getItem("zariya-bag") || "[]"));
@@ -81,33 +80,9 @@ export default function Store({ initialProducts }) {
       setProducts(d.products);
       setDemo(d.demo);
       if (d.payments) setPayments(d.payments);
-    });
-    api("auth")
-      .then((d) => {
-        setUser(d.user);
-        setGoogleEnabled(d.google_enabled);
-        const params = new URLSearchParams(window.location.search);
-        if (params.has("auth_error")) {
-          setPanel("account");
-          setToast(
-            params.get("auth_error") === "google_setup"
-              ? "Google sign-in needs configuration. You can use email and password."
-              : "Google sign-in could not be completed. Please try email and password.",
-          );
-        }
-        if (params.get("checkout") === "1") {
-          setCheckoutIntent(true);
-          setPanel(d.user ? "checkout" : "account");
-        }
-        if (params.get("signed_in") === "1") setToast("Welcome to Rang Mahal");
-        if (
-          params.has("auth_error") ||
-          params.has("checkout") ||
-          params.has("signed_in")
-        )
-          window.history.replaceState({}, "", window.location.pathname);
-      })
-      .catch(() => {});
+    }).catch(() => { setDemo(true); setToast("The collection could not load. Please refresh before ordering."); });
+    const tracking = new URLSearchParams(location.search).get("tracking");
+    if (tracking) { setPanel("track"); setTrackingReference(tracking); }
   }, []);
   useEffect(() => {
     if (
@@ -193,12 +168,16 @@ export default function Store({ initialProducts }) {
     window.addEventListener("keydown", f);
     return () => window.removeEventListener("keydown", f);
   }, []);
-  const items = bag
-      .map((i) => ({ ...i, product: products.find((p) => p.id === i.id) }))
-      .filter((i) => i.product),
+  const items = bag.map((i) => {
+    const base = products.find((p) => p.id === i.id);
+    const variant = base?.variants?.find(v => v.id === i.variant_id) || (!i.variant_id ? base?.variants?.find(v => v.type === "Unstitched") : null);
+    return { ...i, variant_id: variant?.id, variant, product: base && variant ? { ...base, price: variant.price, stock: variant.enabled ? variant.stock : 0 } : null };
+  }).filter(i => i.product),
     subtotal = items.reduce((a, i) => a + i.product.price * i.quantity, 0),
     shipping = subtotal >= 15000 ? 0 : 250,
-    count = bag.reduce((a, i) => a + i.quantity, 0);
+    count = items.reduce((a, i) => a + i.quantity, 0);
+  const selectedOption = selected?.variants?.find(v => v.id === chosenVariant);
+  const selectedImages = selected?.images?.length ? selected.images : selected ? [selected.image] : [];
   const visible = products
     .filter(
       (p) =>
@@ -232,18 +211,17 @@ export default function Store({ initialProducts }) {
       50,
     );
   }
-  function add(p) {
-    const existing = bag.find((i) => i.id === p.id)?.quantity || 0;
-    if (existing >= p.stock) {
-      setToast("There are no more of this saree available.");
-      return;
-    }
-    setBag((b) =>
-      b.some((i) => i.id === p.id)
-        ? b.map((i) => (i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i))
-        : [...b, { id: p.id, quantity: 1 }],
-    );
-    setToast(`${p.name} added to your bag`);
+  function add(p, variantId) {
+    if (!p.variants) { setToast("The collection is loading. Please try again in a moment."); return; }
+    const options = p.variants?.filter(v => v.enabled) || [];
+    const variant = options.find(v => v.id === variantId) || (!variantId && options.length === 1 ? options[0] : null);
+    if (!variant) { setSelected(p); return; }
+    const existing = bag.find(i => i.id === p.id && (i.variant_id === variant.id || (!i.variant_id && variant.type === "Unstitched")))?.quantity || 0;
+    if (existing >= variant.stock || existing >= 20) { setToast("No more of this option is available."); return; }
+    setBag(b => b.some(i => i.id === p.id && (i.variant_id === variant.id || (!i.variant_id && variant.type === "Unstitched")))
+      ? b.map(i => i.id === p.id && (i.variant_id === variant.id || (!i.variant_id && variant.type === "Unstitched")) ? { ...i, variant_id: variant.id, quantity: i.quantity + 1 } : i)
+      : [...b, { id: p.id, variant_id: variant.id, quantity: 1 }]);
+    setSelected(null); setPanel("bag");
   }
   function toggleWish(id) {
     setWish((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
@@ -254,67 +232,88 @@ export default function Store({ initialProducts }) {
     setBusy(true);
     try {
       const b = Object.fromEntries(new FormData(e.currentTarget));
-      const d = await api(path, path === "orders" ? { ...b, items: bag } : b);
-      if (path.startsWith("auth")) {
-        setUser(d.user);
-        if (checkoutIntent) {
-          const settings = await api("settings");
-          setPayments(settings.payments);
-          setPanel("checkout");
-        } else setPanel(null);
-        setToast("Welcome to Rang Mahal");
-      }
+      const d = await api(path, path === "orders" ? { ...b, checkout_token: checkoutToken, items: items.map(i => ({id:i.id,variant_id:i.variant_id,quantity:i.quantity})) } : b);
       if (path === "orders") {
         setConfirmation(d);
+        setCheckoutToken(crypto.randomUUID());
         setBag([]);
-        setCheckoutIntent(false);
         api("catalog").then((d) => setProducts(d.products));
       }
       if (path === "track") setTracked(d.order);
     } catch (e) {
-      if (path === "orders" && e.status === 401) {
-        setUser(null);
-        setCheckoutIntent(true);
-        setRegister(false);
-        setPanel("account");
-      }
       setError(e.message);
     } finally {
       setBusy(false);
     }
   }
   async function beginCheckout() {
-    setBusy(true);
-    setConfirmation(null);
-    try {
-      const auth = await api("auth");
-      setUser(auth.user);
-      setGoogleEnabled(auth.google_enabled);
-      setCheckoutIntent(true);
-      if (auth.user) {
-        const settings = await api("settings");
-        setPayments(settings.payments);
-        setPanel("checkout");
-      } else {
-        setRegister(false);
-        setPanel("account");
-      }
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
+    setBusy(true); setConfirmation(null); setCheckoutToken(crypto.randomUUID());
+    try { const settings = await api("settings"); setPayments(settings.payments); setPanel("checkout"); }
+    catch (e) { setError(e.message); } finally { setBusy(false); }
   }
-  async function account() {
-    setCheckoutIntent(false);
-    setPanel("account");
-    if (user)
-      try {
-        setOrders((await api("orders")).orders);
-      } catch (e) {
-        setError(e.message);
-      }
-  }
+  function account() { setTracked(null); setPanel("track"); }
+  function productCard(p) { return (<article className="product-card" key={p.id}>
+                  <div className="product-image">
+                    <button
+                      className="product-open"
+                      onClick={() => setSelected(p)}
+                      aria-label={`View ${p.name}`}
+                    >
+                      <img
+                        src={p.image}
+                        alt={`${p.name} in ${p.color}`}
+                        loading="lazy"
+                      />
+                    </button>
+                    {(p.discount > 0 || p.badge) && (
+                      <span
+                        className={
+                          "badge " + (p.badge === "NEW ARRIVAL" ? "rose" : "")
+                        }
+                      >
+                        {p.discount > 0 ? `${p.discount}% OFF` : p.badge}
+                      </span>
+                    )}
+                    <IconButton
+                      label={`Save ${p.name}`}
+                      className={
+                        "wish-button " + (wish.includes(p.id) ? "saved" : "")
+                      }
+                      onClick={() => toggleWish(p.id)}
+                    >
+                      <Heart
+                        size={18}
+                        fill={wish.includes(p.id) ? "currentColor" : "none"}
+                      />
+                    </IconButton>
+                    <button
+                      className="quick-add"
+                      disabled={!p.stock}
+                      onClick={() => add(p)}
+                    >
+                      {p.stock ? "ADD TO BAG" : "SOLD OUT"} <Plus size={16} />
+                    </button>
+                  </div>
+                  <div className="product-meta">
+                    <span>{p.fabric} · {p.stock ? `${p.stock} left` : "Out of stock"}</span>
+                    <span
+                      className={"swatch " + (p.color || "").toLowerCase()}
+                      title={p.color}
+                    />
+                  </div>
+                  <button
+                    className="product-name"
+                    onClick={() => setSelected(p)}
+                  >
+                    {p.name}
+                  </button>
+                  <div className="price">
+                    {money(p.price)}{" "}
+                    {p.compare_price > p.price && (
+                      <del>{money(p.compare_price)}</del>
+                    )}
+                  </div>
+                </article>); }
   return (
     <>
       <div
@@ -339,8 +338,8 @@ export default function Store({ initialProducts }) {
               >
                 <Search size={20} />
               </IconButton>
-              <IconButton label="My account" onClick={account}>
-                <UserRound size={20} />
+              <IconButton label="Track your order" onClick={account}>
+                <PackageCheck size={20} />
               </IconButton>
               <IconButton label="Wishlist" onClick={() => browse("Wishlist")}>
                 <Heart size={20} />
@@ -423,6 +422,7 @@ export default function Store({ initialProducts }) {
               ))}
             </div>
           </section>
+          {category === "All Sarees" && !search && products.some(p=>p.featured) && <section className="featured-collection wrap"><div className="section-intro"><div><div className="eyebrow">CHOSEN FOR YOU</div><h2>Featured <em>sarees.</em></h2></div></div><div className="product-grid">{products.filter(p=>p.featured).map(productCard)}</div></section>}
           <section className="collection wrap" id="collection">
             <div className="section-intro">
               <div>
@@ -474,70 +474,7 @@ export default function Store({ initialProducts }) {
               </div>
             )}
             <div className="product-grid">
-              {visible.map((p) => (
-                <article className="product-card" key={p.id}>
-                  <div className="product-image">
-                    <button
-                      className="product-open"
-                      onClick={() => setSelected(p)}
-                      aria-label={`View ${p.name}`}
-                    >
-                      <img
-                        src={p.image}
-                        alt={`${p.name} in ${p.color}`}
-                        loading="lazy"
-                      />
-                    </button>
-                    {p.badge && (
-                      <span
-                        className={
-                          "badge " + (p.badge === "NEW ARRIVAL" ? "rose" : "")
-                        }
-                      >
-                        {p.badge}
-                      </span>
-                    )}
-                    <IconButton
-                      label={`Save ${p.name}`}
-                      className={
-                        "wish-button " + (wish.includes(p.id) ? "saved" : "")
-                      }
-                      onClick={() => toggleWish(p.id)}
-                    >
-                      <Heart
-                        size={18}
-                        fill={wish.includes(p.id) ? "currentColor" : "none"}
-                      />
-                    </IconButton>
-                    <button
-                      className="quick-add"
-                      disabled={!p.stock}
-                      onClick={() => add(p)}
-                    >
-                      {p.stock ? "ADD TO BAG" : "SOLD OUT"} <Plus size={16} />
-                    </button>
-                  </div>
-                  <div className="product-meta">
-                    <span>{p.fabric}</span>
-                    <span
-                      className={"swatch " + p.color.toLowerCase()}
-                      title={p.color}
-                    />
-                  </div>
-                  <button
-                    className="product-name"
-                    onClick={() => setSelected(p)}
-                  >
-                    {p.name}
-                  </button>
-                  <div className="price">
-                    {money(p.price)}{" "}
-                    {p.compare_price > p.price && (
-                      <del>{money(p.compare_price)}</del>
-                    )}
-                  </div>
-                </article>
-              ))}
+              {visible.map(productCard)}
             </div>
             {!visible.length && (
               <div className="empty">
@@ -579,12 +516,6 @@ export default function Store({ initialProducts }) {
               <p>
                 Rang Mahal begins with sarees and a love for Pakistani culture, traditions and the beauty of craft. Our vision reaches beyond clothing: to celebrate the colours, stories and creative expression that connect us. Choose a drape that feels like you, and make it part of your own story.
               </p>
-              <button
-                className="text-link"
-                onClick={() => browse("Silk Sarees")}
-              >
-                Explore the saree collection <ArrowUpRight size={18} />
-              </button>
               <div className="story-signature">With love, Rang Mahal.</div>
             </div>
           </section>
@@ -628,7 +559,6 @@ export default function Store({ initialProducts }) {
                 Shipping & returns
               </button>
               <button onClick={() => setPanel("care")}>Saree care guide</button>
-              <button onClick={account}>My account</button>
             </div>
             <div>
               <h4>THE RANG MAHAL SPIRIT</h4>
@@ -641,9 +571,6 @@ export default function Store({ initialProducts }) {
                 {payments.cod_enabled && payments.bank_enabled ? " · " : ""}
                 {payments.bank_enabled ? "BANK TRANSFER" : ""}
               </span>
-              <a href="/admin" className="admin-link">
-                Store administration <ArrowUpRight size={12} />
-              </a>
             </div>
           </div>
           <div className="footer-bottom wrap">
@@ -677,11 +604,13 @@ export default function Store({ initialProducts }) {
             >
               <X />
             </IconButton>
-            <img src={selected.image} alt={selected.name} />
+            <div className="product-gallery"><img src={selectedImages[galleryIndex] || selected.image} alt={selected.name} />
+              <div className="gallery-thumbnails">{selectedImages.map((src,i)=><button key={src} aria-label={"Product image "+(i+1)} aria-pressed={i===galleryIndex} onClick={()=>setGalleryIndex(i)}><img src={src} alt="" /></button>)}</div></div>
             <div className="product-detail">
               <div className="eyebrow">{selected.brand}</div>
               <h2>{selected.name}</h2>
-              <div className="price">{money(selected.price)}</div>
+              <div className="price">{money(selectedOption?.price ?? selected.price)} {selectedOption?.discount > 0 && <><del>{money(selectedOption.regular_price)}</del><span className="sale-label">{selectedOption.discount}% OFF</span></>}</div>
+              <fieldset className="variant-picker"><legend>Choose your option</legend>{["Unstitched","Stitched"].map(type=>{const v=selected.variants?.find(v=>v.type===type);return <label key={type} className={!v?.enabled || !v.stock ? "unavailable" : ""}><input type="radio" name="variant" value={v?.id || ""} checked={v?.id === chosenVariant} disabled={!v?.enabled || !v.stock} onChange={()=>setChosenVariant(v.id)} />{type}<span>{v?.enabled ? money(v.price) : "Unavailable"} · {v?.enabled ? v.stock+" left" : "Not offered"}</span></label>;})}</fieldset>
               <p>{selected.description}</p>
               <div className="detail-list">
                 <span>
@@ -694,13 +623,13 @@ export default function Store({ initialProducts }) {
                   Length <b>Approx. 6.3 m, including blouse</b>
                 </span>
                 <span>
-                  Availability <b>{selected.stock ? "In stock" : "Sold out"}</b>
+                  Availability <b>{selectedOption?.stock ? `${selectedOption.stock} pieces remaining` : "Sold out"}</b>
                 </span>
               </div>
               <button
                 className="gold-button"
-                disabled={!selected.stock}
-                onClick={() => add(selected)}
+                disabled={!selectedOption?.stock}
+                onClick={() => add(selected, chosenVariant)}
               >
                 ADD TO BAG <ShoppingBag size={17} />
               </button>
@@ -714,8 +643,7 @@ export default function Store({ initialProducts }) {
                   : "Save to wishlist"}
               </button>
               <small>
-                Sample collection image. Replace with actual product photography
-                before launch.
+                Choose your preferred option and check the available stock before adding to your bag.
               </small>
             </div>
           </section>
@@ -739,7 +667,6 @@ export default function Store({ initialProducts }) {
                   {
                     bag: "Your shopping bag",
                     checkout: "A beautiful choice.",
-                    account: user ? "Your account" : "Welcome to Rang Mahal",
                     search: "Find your perfect drape",
                     track: "Track your order",
                     delivery: "Shipping & returns",
@@ -795,12 +722,12 @@ export default function Store({ initialProducts }) {
                         : `You’re ${money(15000 - subtotal)} away from free delivery.`}
                     </div>
                     {items.map((i) => (
-                      <div className="bag-item" key={i.id}>
+                      <div className="bag-item" key={i.variant_id}>
                         <img src={i.product.image} alt={i.product.name} />
                         <div>
                           <h3>{i.product.name}</h3>
                           <p>
-                            {i.product.color} · {i.product.fabric}
+                            {i.variant?.type} · {i.product.color} · {i.product.fabric}
                           </p>
                           <b>{money(i.product.price)}</b>
                           <div className="quantity">
@@ -810,7 +737,7 @@ export default function Store({ initialProducts }) {
                                 setBag((b) =>
                                   b
                                     .map((x) =>
-                                      x.id === i.id
+                                      (x.variant_id === i.variant_id || (!x.variant_id && x.id === i.id))
                                         ? { ...x, quantity: x.quantity - 1 }
                                         : x,
                                     )
@@ -823,7 +750,7 @@ export default function Store({ initialProducts }) {
                             <span>{i.quantity}</span>
                             <IconButton
                               label="Increase quantity"
-                              onClick={() => add(i.product)}
+                              onClick={() => add(i.product, i.variant_id)}
                             >
                               <Plus size={13} />
                             </IconButton>
@@ -832,7 +759,7 @@ export default function Store({ initialProducts }) {
                         <IconButton
                           label="Remove item"
                           onClick={() =>
-                            setBag((b) => b.filter((x) => x.id !== i.id))
+                            setBag((b) => b.filter((x) => !(x.variant_id === i.variant_id || (!x.variant_id && x.id === i.id))))
                           }
                         >
                           <X size={16} />
@@ -847,21 +774,18 @@ export default function Store({ initialProducts }) {
                         Shipping{" "}
                         <b>
                           {shipping
-                            ? "Calculated at checkout"
+                            ? money(shipping)
                             : "Complimentary"}
                         </b>
                       </span>
+                      <span className="grand-total">Total <b>{money(subtotal + shipping)}</b></span>
                     </div>
                     <button
                       className="gold-button"
                       onClick={beginCheckout}
                       disabled={busy}
                     >
-                      {busy
-                        ? "PLEASE WAIT…"
-                        : user
-                          ? "PROCEED TO CHECKOUT"
-                          : "SIGN IN TO CHECKOUT"}{" "}
+                      {busy ? "PLEASE WAIT…" : "PROCEED TO CHECKOUT"}{" "}
                       <ArrowRight size={17} />
                     </button>
                     <p className="fine-print">
@@ -884,7 +808,6 @@ export default function Store({ initialProducts }) {
               </>
             )}
             {panel === "checkout" &&
-              user &&
               (confirmation ? (
                 <div className="success">
                   <Check size={42} />
@@ -893,7 +816,8 @@ export default function Store({ initialProducts }) {
                     Thank you for choosing Rang Mahal. Save your reference to track
                     your order.
                   </p>
-                  <strong>{confirmation.reference}</strong>
+                  <strong className="tracking-id">{confirmation.reference}</strong>
+                  <button type="button" className="outline-button" onClick={() => {setTrackingReference(confirmation.reference);setTracked(null);setPanel("track");}}>TRACK THIS ORDER</button>
                   <p>
                     Total: {money(confirmation.total)}
                     <br />
@@ -928,7 +852,7 @@ export default function Store({ initialProducts }) {
                           name="name"
                           maxLength={100}
                           autoComplete="name"
-                          defaultValue={user?.name}
+                          defaultValue=""
                         />
                       </label>
                       <label>
@@ -948,7 +872,7 @@ export default function Store({ initialProducts }) {
                         type="email"
                         name="email"
                         autoComplete="email"
-                        defaultValue={user?.email}
+                        defaultValue=""
                       />
                     </label>
                     <label>
@@ -977,6 +901,7 @@ export default function Store({ initialProducts }) {
                         <input value="Pakistan" readOnly />
                       </label>
                     </div>
+                    <label>Postal code<input name="postal_code" required maxLength={15} autoComplete="postal-code" placeholder="e.g. 54000" /></label>
                     <h3>Payment method</h3>
                     {payments.cod_enabled && (
                       <label className="radio-label payment-choice">
@@ -1008,8 +933,8 @@ export default function Store({ initialProducts }) {
                     )}
                     <div className="totals">
                       {items.map((i) => (
-                        <span key={i.id}>
-                          {i.product.name} × {i.quantity}
+                        <span key={i.variant_id}>
+                          {i.product.name} · {i.variant?.type} × {i.quantity}
                           <b>{money(i.quantity * i.product.price)}</b>
                         </span>
                       ))}
@@ -1033,169 +958,23 @@ export default function Store({ initialProducts }) {
                       <ArrowRight size={17} />
                     </button>
                     <p className="fine-print">
-                      Your final total and availability are verified securely by
+                      No account needed. Your tracking ID appears after ordering. Your final total and availability are verified securely by
                       the server.
                     </p>
-                  </form>
-                </>
-              ))}
-            {panel === "account" &&
-              (user ? (
-                <>
-                  <p>Welcome, {user.name}.</p>
-                  {user.role === "admin" && (
-                    <a className="gold-button" href="/admin">
-                      OPEN ADMIN DASHBOARD <ArrowUpRight size={17} />
-                    </a>
-                  )}
-                  <h3>Your orders</h3>
-                  {orders.length ? (
-                    orders.map((o) => (
-                      <div className="account-order" key={o.id}>
-                        <b>{o.reference}</b>
-                        <span>
-                          {o.status} · {money(o.total)}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="muted">
-                      Your orders will appear here when you shop while signed
-                      in.
-                    </p>
-                  )}
-                  <button
-                    className="outline-button"
-                    onClick={async () => {
-                      try {
-                        await api("auth/logout", {});
-                        setUser(null);
-                        setOrders([]);
-                      } catch (e) {
-                        setError(e.message);
-                      }
-                    }}
-                  >
-                    SIGN OUT
-                  </button>
-                </>
-              ) : (
-                <>
-                  {checkoutIntent && (
-                    <div className="checkout-auth-banner">
-                      <ShieldCheck size={22} />
-                      <div>
-                        <strong>Your beautiful choice is saved.</strong>
-                        <p>
-                          Sign in or create an account to place your order. Your
-                          shopping bag stays right here.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <button
-                    className="google-button"
-                    disabled={!googleEnabled || busy}
-                    onClick={() => {
-                      window.location.href =
-                        "/api/auth/google" +
-                        (checkoutIntent ? "?next=checkout" : "");
-                    }}
-                  >
-                    <span className="google-letter">G</span> Continue with
-                    Google
-                  </button>
-                  {!googleEnabled && (
-                    <p className="google-setup-note">
-                      Google sign-in is currently unavailable. Use your Gmail or
-                      another email with a password below.
-                    </p>
-                  )}
-                  <div className="auth-divider">
-                    <span />
-                    or continue with email
-                    <span />
-                  </div>
-                  <div className="auth-tabs">
-                    <button
-                      className={!register ? "active" : ""}
-                      onClick={() => setRegister(false)}
-                    >
-                      Sign in
-                    </button>
-                    <button
-                      className={register ? "active" : ""}
-                      onClick={() => setRegister(true)}
-                    >
-                      Create account
-                    </button>
-                  </div>
-                  <form
-                    onSubmit={(e) =>
-                      submit(e, register ? "auth/register" : "auth/login")
-                    }
-                  >
-                    {register && (
-                      <label>
-                        Your name
-                        <input
-                          required
-                          name="name"
-                          maxLength={100}
-                          autoComplete="name"
-                        />
-                      </label>
-                    )}
-                    <label>
-                      Email
-                      <input
-                        required
-                        type="email"
-                        name="email"
-                        autoComplete="email"
-                      />
-                    </label>
-                    <label>
-                      Password
-                      <input
-                        required
-                        type="password"
-                        name="password"
-                        minLength={register ? 12 : 1}
-                        maxLength={128}
-                        autoComplete={
-                          register ? "new-password" : "current-password"
-                        }
-                      />
-                    </label>
-                    {register && <small>Use at least 12 characters.</small>}
-                    <button className="gold-button" disabled={busy}>
-                      {busy
-                        ? "PLEASE WAIT…"
-                        : register
-                          ? "CREATE ACCOUNT"
-                          : checkoutIntent
-                            ? "SIGN IN & CONTINUE"
-                            : "SIGN IN"}{" "}
-                      <ArrowRight size={17} />
-                    </button>
                   </form>
                 </>
               ))}
             {panel === "track" && (
               <>
                 <p className="muted">
-                  Enter the reference and email used at checkout.
+                  Enter your tracking ID to see your order status. No login needed.
                 </p>
                 <form onSubmit={(e) => submit(e, "track")}>
                   <label>
                     Order reference
-                    <input name="reference" required placeholder="ZR-…" />
+                    <input name="reference" required placeholder="RM-…" value={trackingReference} onChange={e=>{setTrackingReference(e.target.value);setTracked(null);}} />
                   </label>
-                  <label>
-                    Email
-                    <input type="email" name="email" required />
-                  </label>
+                  {trackingReference && !trackingReference.toUpperCase().startsWith("RM-") && <label>Email for an older order<input type="email" name="email" required /></label>}
                   <button disabled={busy} className="gold-button">
                     {busy ? "CHECKING…" : "TRACK ORDER"}{" "}
                     <ArrowRight size={17} />
@@ -1206,7 +985,9 @@ export default function Store({ initialProducts }) {
                     <PackageCheck size={28} />
                     <h3>{tracked.reference}</h3>
                     <b>{tracked.status}</b>
-                    <p>{money(tracked.total)}</p>
+                    <p>{money(tracked.total)} · {tracked.city}</p>
+                    <ol className="tracking-steps">{["Pending","Confirmed","Processing","Packed","Shipped","Out for Delivery","Delivered"].map((step,i,steps)=><li key={step} className={tracked.status !== "Cancelled" && i <= steps.indexOf(tracked.status) ? "complete" : ""}>{step}</li>)}</ol>
+                    {tracked.items?.map((i,n)=><p key={n}>{i.name} · {i.variant || "Unstitched"} × {i.quantity}</p>)}
                   </div>
                 )}
               </>

@@ -29,8 +29,8 @@ export function validateProduct(p) {
     Number(p.compare_price || 0) < 0
   )
     throw Error("Invalid original price.");
-  if (p.image && !/^\/images\/[a-zA-Z0-9_.-]+$|^https:\/\//.test(p.image))
-    throw Error("Use a local /images/ path or HTTPS image URL.");
+  if (p.image && !/^(?:\/images\/[a-zA-Z0-9_.-]+|\/media\/products\/[a-f0-9]{32}\.webp|https:\/\/[^\s]+)$/.test(p.image))
+    throw Error("Use a local product image path or HTTPS image URL.");
   return {
     name: p.name.trim(),
     category: p.category,

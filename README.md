@@ -1,6 +1,6 @@
 # Rang Mahal — Laravel saree store
 
-Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, original campaign images, product collections, wishlist, bag, customer accounts, checkout, inventory administration and CSV import/export are preserved from the previous Next.js store. PHP/Laravel now runs the backend; Node.js is needed only to build frontend assets.
+Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, original campaign images, product collections, wishlist, bag, guest checkout, inventory administration and CSV import/export are preserved from the previous Next.js store. PHP/Laravel now runs the backend; Node.js is needed only to build frontend assets.
 
 ## Your local installation
 
@@ -8,9 +8,9 @@ Laravel 12 / PHP 8.2+, MySQL, React and Vite. The black-and-gold storefront, ori
 - Storefront: http://localhost:8088/
 - Admin: http://localhost:8088/admin
 - MySQL database: `zariya_laravel`
-- Admin email: `admin@zariya.local`
+- Admin email: `owner@rangmahal.site`
 
-The admin password is privately saved in the local `.env` file as `ADMIN_PASSWORD`. It is never committed. The previous `zariya_store` database is preserved separately; old customers/orders are not automatically migrated to this new installation.
+The current local login is privately saved in `.local-tools/deployment/local-admin.txt`; production uses separate credentials in `.local-tools/deployment/production-admin.txt`. Passwords are never committed. The previous `zariya_store` database is preserved separately; old customers/orders are not automatically migrated to this new installation.
 
 Start **Apache** and **MySQL** in XAMPP Control Panel. The included `deploy/xampp-zariya.conf` sets a local-only Apache virtual host on port 8088 pointing to `public/`, so environment files and application source are not web-accessible. It is included from XAMPP's `httpd.conf` on this machine.
 
@@ -37,14 +37,21 @@ For the built-in PHP server use `APP_URL=http://127.0.0.1:8000`. For Apache use 
 ## Features and security
 
 - Laravel session authentication, session regeneration and CSRF-protected mutations.
-- Customers must sign in or register before ordering; shopping bag persists locally.
+- Guest checkout: name, email, phone, complete address, city and postal code. No customer accounts or registration.
+- Right-side shopping bag, separate Stitched/Unstitched prices and stock, gallery of up to four compressed WebP images.
+- Sale prices and discount badges, featured homepage products, low-stock alerts per variation.
+- Tracking by high-entropy RM tracking ID without login; old ZR references still require the original email.
+- Sequential delivery states: Pending → Confirmed → Processing → Packed → Shipped → Out for Delivery → Delivered, with cancellation before dispatch.
+- Idempotent checkout, transaction-locked variation stock, server prices and one-time cancellation stock restoration.
 - Server-side validation, database role checks on every admin endpoint, login throttling.
 - MySQL transactions, row locks, server prices and shipping, duplicate-cart consolidation.
 - Cash on delivery enabled by default, optional bank transfer controlled by admin; card payments remain unavailable until a gateway is integrated.
 - Product CRUD/archive, inventory, categories, brands, customers, order management, product CSV import/export and order export.
-- Google OAuth via Laravel Socialite; supply your own credentials. Administrators use email/password.
+- Super Admin, Admin, Order Manager, Product Manager and Staff roles with backend permissions. Only Super Admin manages users and role assignments. Disabled accounts and credential/access changes invalidate existing staff sessions.
+- Customer checkout never creates users or authenticates a session. Public signup/Google login routes are disabled.
+- Order confirmation email is sent only when a real mail provider is configured; the default log/array mailers do not send.
 
-Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REDIRECT_URI` in `.env`. Local callback: `http://localhost:8088/api/auth/google/callback`. Google credentials and consent configuration are still required; this flow cannot be verified with missing credentials.
+See [commerce operations](deploy/COMMERCE.md) for product options, image uploads and permissions.
 
 ## Checks
 
@@ -61,6 +68,6 @@ Production runs on GoDaddy cPanel at **https://rangmahal.site/**; administration
 
 Netlify remains the last deployed Next.js preview and cannot run this Laravel/PHP backend. Laravel commits use `[skip netlify]`. For generic PHP hosting requirements see [DEPLOYMENT.md](DEPLOYMENT.md).
 
-Before selling, replace sample inventory with actual product photos/prices and confirm your business contact, return policy and delivery terms. Live card payments, mail-based password reset, courier integration and transactional email are not included.
+Before selling, replace sample inventory with actual product photos/prices and confirm your business contact, return policy and delivery terms. Live card payments, mail-based password reset, courier integration are not included. Order confirmation email requires a configured mail provider.
 
 Save all addresses from [LINKS.md](LINKS.md). The prior Next.js implementation remains recoverable in Git history.

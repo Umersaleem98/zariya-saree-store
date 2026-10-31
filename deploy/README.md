@@ -14,7 +14,7 @@ The cPanel Git repository is `/home/jjt1xvidnzva/repositories/rangmahal`, linked
 
 For the first installation, create a dedicated MySQL database/user, provision a private `.env` using `production.env.example`, and generate unique application/admin secrets. Run `php artisan db:seed --force` once after deployment. Never use `migrate:fresh` on production. Never put `.env`, database dumps, private SSH keys, or admin passwords in GitHub or `public_html`.
 
-HTTPS and the non-www domain are canonical. Secure session cookies and CSRF protection remain enabled. Cash on delivery is enabled; online card payments remain disabled and controlled through the admin settings. Gmail sign-in requires separate Google OAuth credentials and an authorized production callback URL. Outbound customer email requires a configured mail provider; the initial configuration uses the private Laravel log.
+HTTPS and the non-www domain are canonical. Secure session cookies and CSRF protection remain enabled. Cash on delivery is enabled; online card payments remain disabled and controlled through the admin settings. Customer signup and sign-in are disabled; customers order and track as guests. Outbound customer email requires a configured mail provider; the initial configuration uses the private Laravel log.
 
 ## Recovery
 
