@@ -100,7 +100,7 @@ export default function Store({ initialProducts }) {
           setCheckoutIntent(true);
           setPanel(d.user ? "checkout" : "account");
         }
-        if (params.get("signed_in") === "1") setToast("Welcome to Zariya");
+        if (params.get("signed_in") === "1") setToast("Welcome to Rang Mahal");
         if (
           params.has("auth_error") ||
           params.has("checkout") ||
@@ -263,7 +263,7 @@ export default function Store({ initialProducts }) {
           setPayments(settings.payments);
           setPanel("checkout");
         } else setPanel(null);
-        setToast("Welcome to Zariya");
+        setToast("Welcome to Rang Mahal");
       }
       if (path === "orders") {
         setConfirmation(d);
@@ -322,21 +322,13 @@ export default function Store({ initialProducts }) {
         className="store-surface"
         inert={panel || selected ? true : undefined}
       >
-        <div className="announcement">
-          <span>Thoughtfully chosen. Beautifully draped.</span>
-          <span>
-            COMPLIMENTARY DELIVERY ON ORDERS ABOVE RS. 15,000{" "}
-            <ArrowRight size={12} />
-          </span>
-          <span>Pakistan-wide delivery</span>
-        </div>
-        <header>
+        <div className="announcement" aria-label="Store announcement"><span className="announcement-message">COMPLIMENTARY DELIVERY ON ORDERS OF RS. 15,000 OR MORE <ArrowRight size={12}/></span></div><header>
           <div className="header-top">
             <IconButton label="Open menu" onClick={() => setMobile(!mobile)}>
               <Menu />
             </IconButton>
             <a className="wordmark" href="/">
-              ZARIYA<span>THE ART OF THE SAREE</span>
+              RANG MAHAL<span>COLOURS OF TRADITION</span>
             </a>
             <div className="header-actions">
               <IconButton
@@ -366,7 +358,7 @@ export default function Store({ initialProducts }) {
               </IconButton>
             </div>
           </div>
-          <nav className={mobile ? "open" : ""}>
+          </header><nav aria-label="Saree collections" className={mobile ? "category-nav open" : "category-nav"}>
             <button onClick={() => browse()}>All Sarees</button>
             <button onClick={() => browse("Silk Sarees")}>Silk Sarees</button>
             <button onClick={() => browse("Party Wear")}>Party Wear</button>
@@ -387,30 +379,29 @@ export default function Store({ initialProducts }) {
               Our Story
             </button>
           </nav>
-        </header>
         <main>
           <section className="hero">
             <img
               src="/images/campaign.jpg"
-              alt="Golden Banarasi saree, draped with timeless elegance"
+              alt="Golden saree styled for a Pakistani celebration — Rang Mahal"
               fetchPriority="high"
             />
             <div className="hero-shade" />
             <div className="hero-copy">
               <div className="eyebrow">
-                <span /> THE ZARIYA SIGNATURE COLLECTION
+                <span /> RANG MAHAL — COLOURS OF TRADITION
               </div>
               <h1>
-                Some stories
+                Rooted in
                 <br />
-                are woven
+                tradition.
                 <br />
-                in <em>gold.</em>
+                Worn with <em>love.</em>
               </h1>
               <p>
-                Exquisite sarees. Timeless craftsmanship.
+                Sarees for the celebrations that bring us together.
                 <br />
-                For the woman who makes every moment her own.
+                Discover colours and graceful drapes for your own story.
               </p>
               <button className="gold-button" onClick={() => browse()}>
                 EXPLORE THE COLLECTION <ArrowUpRight size={18} />
@@ -446,9 +437,9 @@ export default function Store({ initialProducts }) {
           <section className="category-section wrap">
             <div className="section-intro">
               <div>
-                <div className="eyebrow">A DRAPE FOR EVERY MOMENT</div>
+                <div className="eyebrow">FOR YOUR EVERY CELEBRATION</div>
                 <h2>
-                  Find your <em>kind of beautiful.</em>
+                  Tradition, in <em>your favourite colours.</em>
                 </h2>
               </div>
               <button className="text-link" onClick={() => browse()}>
@@ -459,22 +450,22 @@ export default function Store({ initialProducts }) {
               {[
                 {
                   name: "Silk Sarees",
-                  sub: "An heirloom in the making",
+                  sub: "Rich colour. Graceful drapes.",
                   img: "ruby",
                 },
                 {
                   name: "Wedding Edit",
-                  sub: "For your unforgettable moments",
+                  sub: "For mehndi nights and wedding memories",
                   img: "emerald",
                 },
                 {
                   name: "Party Wear",
-                  sub: "A little after-dark magic",
+                  sub: "An elegant choice for your next dawat",
                   img: "black",
                 },
                 {
                   name: "Everyday Elegance",
-                  sub: "Beauty in the everyday",
+                  sub: "A little beauty in everyday moments",
                   img: "ivory",
                 },
               ].map((c) => (
@@ -502,20 +493,20 @@ export default function Store({ initialProducts }) {
             <div className="section-intro">
               <div>
                 <div className="eyebrow">
-                  CURATED WITH LOVE, WORN WITH CONFIDENCE
+                  SAREES ONLINE IN PAKISTAN
                 </div>
                 <h2>
                   {category === "Wishlist" ? (
                     "Your favourites."
                   ) : (
                     <>
-                      The most <em>loved drapes.</em>
+                      Find a colour. <em>Make it yours.</em>
                     </>
                   )}
                 </h2>
               </div>
               <span className="small-note">
-                A timeless addition to your wardrobe.
+                From Eid gatherings to wedding celebrations.
               </span>
             </div>
             <div className="collection-tools">
@@ -647,32 +638,29 @@ export default function Store({ initialProducts }) {
               <img
                 loading="lazy"
                 src="/images/craftsmanship.jpg"
-                alt="Ruby Banarasi silk with intricate golden zari craftsmanship"
+                alt="Ruby red saree with a golden Banarasi-style border — Rang Mahal"
               />
               <span>Made to be remembered.</span>
             </div>
             <div className="editorial-copy">
-              <div className="eyebrow">MORE THAN SIX YARDS</div>
+              <div className="eyebrow">OUR STORY — A CONNECTION TO CULTURE</div>
               <h2>
-                A thread of tradition.
-                <br />A touch of <em>you.</em>
+                A love for culture.
+                <br />A style of <em>your own.</em>
               </h2>
               <p>
-                From the celebrations that bring us together to the quiet
-                moments we make our own — a saree holds a thousand stories.
+                In Pakistan, colour is part of how we celebrate. It fills our mehndi evenings, brightens our Eid gatherings and lives on in the clothes we remember with love.
               </p>
               <p>
-                At Zariya, we bring together graceful drapes and beautiful
-                details for the women of Pakistan. Sarees to treasure, moments
-                to remember.
+                Rang Mahal begins with sarees and a love for Pakistani culture, traditions and the beauty of craft. Our vision reaches beyond clothing: to celebrate the colours, stories and creative expression that connect us. Choose a drape that feels like you, and make it part of your own story.
               </p>
               <button
                 className="text-link"
                 onClick={() => browse("Silk Sarees")}
               >
-                Find your next story <ArrowUpRight size={18} />
+                Explore the saree collection <ArrowUpRight size={18} />
               </button>
-              <div className="story-signature">With love, Zariya.</div>
+              <div className="story-signature">With love, Rang Mahal.</div>
             </div>
           </section>
           <section className="service-section wrap">
@@ -707,7 +695,7 @@ export default function Store({ initialProducts }) {
           <section className="closing">
             <div className="eyebrow">YOUR NEXT BEAUTIFUL MOMENT</div>
             <h2>
-              Find a saree that feels <em>like you.</em>
+              Your next celebration. <em>Your own colours.</em>
             </h2>
             <button className="gold-button" onClick={() => browse()}>
               FIND YOUR DRAPE <ArrowUpRight size={17} />
@@ -718,14 +706,14 @@ export default function Store({ initialProducts }) {
           <div className="footer-main wrap">
             <div className="footer-brand">
               <a className="wordmark" href="/">
-                ZARIYA<span>THE ART OF THE SAREE</span>
+                RANG MAHAL<span>COLOURS OF TRADITION</span>
               </a>
               <p>
                 Six yards of grace.
                 <br />A lifetime of stories.
               </p>
               <span className="location">
-                <MapPin size={15} /> Made for the women of Pakistan.
+                <MapPin size={15} /> Inspired by Pakistan. Chosen by you.
               </span>
             </div>
             <div>
@@ -755,10 +743,10 @@ export default function Store({ initialProducts }) {
               <button onClick={account}>My account</button>
             </div>
             <div>
-              <h4>THE ZARIYA PROMISE</h4>
+              <h4>THE RANG MAHAL SPIRIT</h4>
               <p>
-                Timeless style. Thoughtful details.
-                <br />A beautiful shopping experience.
+                A love for colour. A connection to tradition.
+                <br />A style that feels like you.
               </p>
               <span className="footer-pay">
                 {payments.cod_enabled ? "CASH ON DELIVERY" : ""}
@@ -772,7 +760,7 @@ export default function Store({ initialProducts }) {
           </div>
           <div className="footer-bottom wrap">
             <span>
-              © {new Date().getFullYear()} Zariya. All rights reserved.
+              © {new Date().getFullYear()} Rang Mahal. All rights reserved.
             </span>
             <span>PAKISTAN · PKR</span>
             <button onClick={() => setPanel("privacy")}>Privacy policy</button>
@@ -863,7 +851,7 @@ export default function Store({ initialProducts }) {
                   {
                     bag: "Your shopping bag",
                     checkout: "A beautiful choice.",
-                    account: user ? "Your account" : "Welcome to Zariya",
+                    account: user ? "Your account" : "Welcome to Rang Mahal",
                     search: "Find your perfect drape",
                     track: "Track your order",
                     delivery: "Shipping & returns",
@@ -1014,7 +1002,7 @@ export default function Store({ initialProducts }) {
                   <Check size={42} />
                   <h2>Your order is placed.</h2>
                   <p>
-                    Thank you for choosing Zariya. Save your reference to track
+                    Thank you for choosing Rang Mahal. Save your reference to track
                     your order.
                   </p>
                   <strong>{confirmation.reference}</strong>

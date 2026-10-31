@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/bash /home/jjt1xvidnzva/repositories/rangmahal/deploy/cpanel-deploy.sh

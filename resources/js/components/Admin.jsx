@@ -131,12 +131,12 @@ export default function Admin() {
     }
   }
   if (loading)
-    return <div className="admin-loading">Loading Zariya administration…</div>;
+    return <div className="admin-loading">Loading Rang Mahal administration…</div>;
   if (!user || user.role !== "admin")
     return (
       <div className="admin-login">
         <a className="wordmark" href="/">
-          ZARIYA<span>STORE ADMINISTRATION</span>
+          RANG MAHAL<span>STORE ADMINISTRATION</span>
         </a>
         <div className="login-card">
           <div className="eyebrow">WELCOME BACK</div>
@@ -214,7 +214,7 @@ export default function Admin() {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <a className="wordmark" href="/">
-          ZARIYA<span>THE ADMIN SUITE</span>
+          RANG MAHAL<span>THE ADMIN SUITE</span>
         </a>
         <span className="sidebar-label">YOUR BOUTIQUE</span>
         <nav>
@@ -271,7 +271,7 @@ export default function Admin() {
         <main className="admin-main">
           <div className="admin-heading">
             <div>
-              <div className="eyebrow">ZARIYA ADMINISTRATION</div>
+              <div className="eyebrow">RANG MAHAL ADMINISTRATION</div>
               <h1>{tab === "Overview" ? "A beautiful business." : tab}</h1>
               <p className="muted">
                 {tab === "Overview"

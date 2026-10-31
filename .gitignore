@@ -1,6 +1,6 @@
 /.phpunit.cache
 /node_modules
-/public/build
+# Compiled frontend assets are committed for cPanel hosting without Node.js.
 /public/hot
 /public/storage
 /storage/*.key

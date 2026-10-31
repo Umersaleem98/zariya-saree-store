@@ -14,7 +14,7 @@
 }
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 24px;
+  scroll-padding-top: 70px;
 }
 body {
   margin: 0;
@@ -98,18 +98,31 @@ a svg {
   color: #ddd1b6;
   height: 33px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 0 50px;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
   font-size: 9px;
   letter-spacing: 0.5px;
 }
-.announcement span:nth-child(2) {
+.announcement-message {
   font-size: 8px;
   letter-spacing: 1.5px;
   display: flex;
   align-items: center;
   gap: 16px;
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+  animation: announcement-left-to-right 22s linear infinite;
+  animation-delay: -7s;
+  will-change: transform;
+}
+.announcement:hover .announcement-message { animation-play-state: paused; }
+@keyframes announcement-left-to-right {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100vw); }
 }
 .header-top {
   height: 95px;
@@ -166,7 +179,13 @@ a svg {
 .header-top > .icon-button {
   display: none;
 }
-header nav {
+.category-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--ivory);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 16px #15151308;
   display: flex;
   gap: 36px;
   justify-content: center;
@@ -174,11 +193,11 @@ header nav {
   align-items: center;
   font-size: 11px;
 }
-header nav button {
+.category-nav button {
   height: 100%;
   position: relative;
 }
-header nav button:hover {
+.category-nav button:hover {
   color: #a17f41;
 }
 .nav-new {
@@ -1718,7 +1737,7 @@ td small {
   .wrap {
     width: calc(100% - 60px);
   }
-  header nav {
+  .category-nav {
     gap: 23px;
   }
   .hero-copy {
@@ -1778,10 +1797,7 @@ td small {
     padding: 0 12px;
     height: 30px;
   }
-  .announcement > span:not(:nth-child(2)) {
-    display: none;
-  }
-  .announcement span:nth-child(2) {
+  .announcement-message {
     font-size: 6px;
     letter-spacing: 1px;
   }
@@ -1820,21 +1836,30 @@ td small {
   .header-top > .wordmark {
     margin-left: -25px;
   }
-  header nav {
-    display: none;
-    height: auto;
-    padding: 16px 20px;
-    gap: 0;
+  .category-nav {
+    display: flex;
+    height: 48px;
+    padding: 0 18px;
+    gap: 24px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
     border-bottom: 1px solid var(--line);
   }
-  header nav.open {
+  .category-nav.open {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    height: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+    gap: 0;
   }
-  header nav button {
+  .category-nav button {
     text-align: left;
     padding: 12px 0;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .hero {
     height: 590px;
@@ -2663,4 +2688,39 @@ td small {
   .editorial:hover .editorial-image img {
     transform: none;
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .announcement-message {position:static;animation:none;transform:none;}
+}
+.admin-login>.wordmark,.admin-sidebar .wordmark {letter-spacing:3px;font-size:29px;}
+.admin-sidebar .wordmark {font-size:23px;letter-spacing:2px;}
+@media(max-width:760px){.admin-sidebar .wordmark{font-size:0;}.admin-sidebar .wordmark:after{content:'R';}}
+
+/* Local Rang Mahal English header update. */
+.header-top{height:125px;}
+.rang-mahal-store .wordmark{font-size:36px;letter-spacing:5px;}
+.rang-mahal-store .wordmark span{font-size:9px;letter-spacing:2.6px;}
+.category-nav{height:59px;}
+.category-nav button{font-weight:600;}
+.announcement{height:39px;}
+.announcement-message{font-size:9px;}
+.hero h1{font-size:clamp(58px,5.3vw,82px);}
+.editorial-copy p{line-height:1.95;}
+.hero .eyebrow {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.hero p {
+  font-size: 16px;
+  line-height: 1.85;
+}
+.hero-bottom {
+  font-size: 21px;
+  line-height: 1.5;
+}
+@media(max-width:760px){.header-top{height:103px;}.rang-mahal-store .wordmark{font-size:25px;letter-spacing:2.5px;}.rang-mahal-store .wordmark span{font-size:6px;letter-spacing:1.7px;}.category-nav{height:51px;}.category-nav.open{height:auto;}.hero h1{font-size:58px;}.announcement{height:34px;}.announcement-message{font-size:7px;}}
+@media (max-width: 760px) {
+  .hero .eyebrow { font-size: 10px; letter-spacing: 1px; }
+  .hero p { font-size: 13px; max-width: 310px; }
+  .hero-bottom { font-size: 18px; }
 }

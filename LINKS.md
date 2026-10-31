@@ -1,4 +1,7 @@
-# Zariya project links
+# Rang Mahal project links
+
+- Production store: https://rangmahal.site/
+- Production admin: https://rangmahal.site/admin
 
 - Local Laravel store (Apache/XAMPP): http://localhost:8088/
 - Local Laravel admin: http://localhost:8088/admin
@@ -10,4 +13,4 @@
 - Old Next.js online preview: https://zariya-saree-store.netlify.app/
 - Old Netlify project: https://app.netlify.com/projects/zariya-saree-store/overview
 
-The Netlify address is the previous Next.js preview; the new Laravel code requires PHP hosting before it can be published online. Local links require this computer and XAMPP to be running. No passwords or private database credentials are included here.
+The Netlify address is the previous Next.js preview. Production runs Laravel on GoDaddy cPanel. Local links require this computer and XAMPP to be running. No passwords or private database credentials are included here.
