@@ -2841,3 +2841,24 @@ td small {
   .footer-brand-lockup .brand-wordmark { font-size: 22px; }
   .rang-mahal-store .product-name { font-size: 23px; }
 }
+
+/* One collection selector directly after the hero. */
+.collection-menu { padding-top: 30px; padding-bottom: 30px; }
+.collection-segments { display: flex; flex-wrap: wrap; gap: 10px; }
+.collection-segments button { border: 1px solid #d6c9b0; padding: 12px 20px; font-size: 13px; min-height: 44px; transition: background .2s, color .2s; }
+.collection-segments button:hover { background: #eee5d4; }
+.collection-segments button.active { background: #23231e; color: #f5e6c6; border-color: #23231e; }
+.collection-segments button:focus-visible { outline: 2px solid #9e7839; outline-offset: 3px; }
+.collection-tools { justify-content: flex-end; }
+.rang-mahal-store .editorial-copy .eyebrow { font-size: 12px; line-height: 1.7; }
+.rang-mahal-store .editorial-copy p { font-size: 16px; line-height: 1.9; }
+.rang-mahal-store .editorial-copy .text-link { font-size: 14px; }
+.rang-mahal-store .editorial-copy .story-signature { font-size: 28px; }
+@media (max-width: 760px) {
+  .collection-menu { padding-top: 22px; padding-bottom: 28px; }
+  .collection-segments { gap: 8px; }
+  .collection-segments button { padding: 11px 14px; font-size: 14px; }
+  .rang-mahal-store .editorial-copy p { font-size: 17px; line-height: 1.85; }
+  .rang-mahal-store .hero-copy { padding-bottom: 48px; }
+  .rang-mahal-store .hero { min-height: 600px; }
+}

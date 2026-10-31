@@ -15,7 +15,6 @@ import {
   Menu,
   Truck,
   ShieldCheck,
-  Sparkles,
   PackageCheck,
   Check,
   Instagram,
@@ -407,85 +406,19 @@ export default function Store({ initialProducts }) {
               <button className="gold-button" onClick={() => browse()}>
                 EXPLORE THE COLLECTION <ArrowUpRight size={18} />
               </button>
-              <div className="hero-bottom">
-                <span>A little heritage. A little you.</span>
-                <span className="hero-line" />
-              </div>
-            </div>
-            <div className="hero-caption">
-              <span>THE NOOR EDIT</span>
-              <span>Tradition, reimagined.</span>
-            </div>
-            <div className="hero-count">
-              <span>SIX YARDS OF GRACE</span>
             </div>
           </section>
-          <div className="trust-bar">
-            <span>
-              <Truck /> DELIVERY ACROSS PAKISTAN
-            </span>
-            <span>
-              <Sparkles /> THOUGHTFULLY CURATED QUALITY
-            </span>
-            <span>
-              <ShieldCheck /> SECURE SHOPPING
-            </span>
-            <span>
-              <PackageCheck />{" "}
-              {payments.cod_enabled ? "CASH ON DELIVERY" : "SECURE CHECKOUT"}
-            </span>
-          </div>
-          <section className="category-section wrap">
-            <div className="section-intro">
-              <div>
-                <div className="eyebrow">FOR YOUR EVERY CELEBRATION</div>
-                <h2>
-                  Tradition, in <em>your favourite colours.</em>
-                </h2>
-              </div>
-              <button className="text-link" onClick={() => browse()}>
-                Shop all collections <ArrowUpRight size={16} />
-              </button>
-            </div>
-            <div className="category-grid">
-              {[
-                {
-                  name: "Silk Sarees",
-                  sub: "Rich colour. Graceful drapes.",
-                  img: "ruby",
-                },
-                {
-                  name: "Wedding Edit",
-                  sub: "For mehndi nights and wedding memories",
-                  img: "emerald",
-                },
-                {
-                  name: "Party Wear",
-                  sub: "An elegant choice for your next dawat",
-                  img: "black",
-                },
-                {
-                  name: "Everyday Elegance",
-                  sub: "A little beauty in everyday moments",
-                  img: "ivory",
-                },
-              ].map((c) => (
+          <section className="collection-menu wrap" aria-label="Browse saree collections">
+            <div className="collection-segments">
+              {["All Sarees", ...categories].map((c) => (
                 <button
-                  key={c.name}
-                  onClick={() => browse(c.name)}
-                  className="category-card"
+                  type="button"
+                  className={category === c ? "active" : ""}
+                  aria-pressed={category === c}
+                  onClick={() => browse(c)}
+                  key={c}
                 >
-                  <img
-                    loading="lazy"
-                    src={`/images/${c.img}.jpg`}
-                    alt={c.name}
-                  />
-                  <div>
-                    <span>{c.sub}</span>
-                    <h3>
-                      {c.name} <ArrowUpRight size={23} />
-                    </h3>
-                  </div>
+                  {c}
                 </button>
               ))}
             </div>
@@ -499,6 +432,8 @@ export default function Store({ initialProducts }) {
                 <h2>
                   {category === "Wishlist" ? (
                     "Your favourites."
+                  ) : category !== "All Sarees" ? (
+                    <>{category}. <em>Make it yours.</em></>
                   ) : (
                     <>
                       Find a colour. <em>Make it yours.</em>
@@ -511,17 +446,6 @@ export default function Store({ initialProducts }) {
               </span>
             </div>
             <div className="collection-tools">
-              <div className="tabs">
-                {["All Sarees", ...categories].map((c) => (
-                  <button
-                    className={category === c ? "active" : ""}
-                    onClick={() => setCategory(c)}
-                    key={c}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
               <div className="sort">
                 <SlidersHorizontal size={15} />
                 <select
@@ -663,44 +587,6 @@ export default function Store({ initialProducts }) {
               </button>
               <div className="story-signature">With love, Rang Mahal.</div>
             </div>
-          </section>
-          <section className="service-section wrap">
-            <div>
-              <Truck size={28} />
-              <h3>From us, to your doorstep.</h3>
-              <p>
-                Delivery across Pakistan.
-                <br />
-                Free on orders of Rs. 15,000 or more.
-              </p>
-            </div>
-            <div>
-              <Sparkles size={28} />
-              <h3>Beauty in every detail.</h3>
-              <p>
-                Beautiful fabrics. Thoughtful finishes.
-                <br />
-                Chosen for your special moments.
-              </p>
-            </div>
-            <div>
-              <Heart size={28} />
-              <h3>A little help, a lovely choice.</h3>
-              <p>
-                Fabric and draping details
-                <br />
-                on every product page.
-              </p>
-            </div>
-          </section>
-          <section className="closing">
-            <div className="eyebrow">YOUR NEXT BEAUTIFUL MOMENT</div>
-            <h2>
-              Your next celebration. <em>Your own colours.</em>
-            </h2>
-            <button className="gold-button" onClick={() => browse()}>
-              FIND YOUR DRAPE <ArrowUpRight size={17} />
-            </button>
           </section>
         </main>
         <footer>
